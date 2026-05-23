@@ -3,11 +3,25 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:CyberThrust.IRIS.App.Views"
         Title="CyberThrust.IRIS — Incident Response &amp; Investigation Suite"
+        Icon="Assets/iris.ico"
         Width="1440" Height="900"
         MinWidth="1100" MinHeight="700"
         Background="{DynamicResource Brush.Bg0}"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI Variable, Segoe UI">
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Ctrl" Key="D1" Command="{Binding NavCommand}" CommandParameter="dashboard"/>
+        <KeyBinding Modifiers="Ctrl" Key="D2" Command="{Binding NavCommand}" CommandParameter="incidents"/>
+        <KeyBinding Modifiers="Ctrl" Key="D3" Command="{Binding NavCommand}" CommandParameter="rtr"/>
+        <KeyBinding Modifiers="Ctrl" Key="D4" Command="{Binding NavCommand}" CommandParameter="forensics"/>
+        <KeyBinding Modifiers="Ctrl" Key="D5" Command="{Binding NavCommand}" CommandParameter="memory"/>
+        <KeyBinding Modifiers="Ctrl" Key="D6" Command="{Binding NavCommand}" CommandParameter="graph"/>
+        <KeyBinding Modifiers="Ctrl" Key="D7" Command="{Binding NavCommand}" CommandParameter="health"/>
+        <KeyBinding Modifiers="Ctrl" Key="D8" Command="{Binding NavCommand}" CommandParameter="settings"/>
+        <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding SignOutCommand}"/>
+        <KeyBinding Key="F1" Command="{Binding NavCommand}" CommandParameter="health"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="56"/>
@@ -45,15 +59,39 @@
         <!-- Sidebar -->
         <Border Grid.Row="1" Background="{DynamicResource Brush.Bg1}" BorderBrush="{DynamicResource Brush.Stroke}" BorderThickness="0,0,1,0">
             <StackPanel Margin="8">
-                <Button Content="Dashboard"          Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="dashboard"/>
-                <Button Content="Incidentes"         Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="incidents"/>
-                <Button Content="Console RTR"        Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="rtr"/>
-                <Button Content="Forense (Disco)"    Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="forensics"/>
-                <Button Content="Memória"            Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="memory"/>
-                <Button Content="Árvore de Ataque"   Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="graph"/>
+                <Button ToolTip="Ctrl+1" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="dashboard">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Dashboard"/><TextBlock Grid.Column="1" Text="Ctrl+1" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+2" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="incidents">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Incidentes"/><TextBlock Grid.Column="1" Text="Ctrl+2" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+3" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="rtr">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Console RTR"/><TextBlock Grid.Column="1" Text="Ctrl+3" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+4" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="forensics">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Forense (Disco)"/><TextBlock Grid.Column="1" Text="Ctrl+4" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+5" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="memory">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Memória"/><TextBlock Grid.Column="1" Text="Ctrl+5" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+6" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="graph">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Árvore de Ataque"/><TextBlock Grid.Column="1" Text="Ctrl+6" Style="{StaticResource Dim}"/></Grid>
+                </Button>
                 <Separator Margin="0,8" Background="{DynamicResource Brush.Stroke}"/>
-                <Button Content="Health Check"       Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="health"/>
-                <Button Content="Configurações"      Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="settings"/>
+                <Button ToolTip="Ctrl+7 ou F1" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="health">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Health Check"/><TextBlock Grid.Column="1" Text="F1" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+8" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="settings">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Configurações"/><TextBlock Grid.Column="1" Text="Ctrl+8" Style="{StaticResource Dim}"/></Grid>
+                </Button>
             </StackPanel>
         </Border>
 

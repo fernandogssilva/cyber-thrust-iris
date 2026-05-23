@@ -47,6 +47,9 @@ public partial class MainViewModel : ViewModelBase
     private void Nav(string viewKey) => _nav.NavigateTo(viewKey);
 
     [RelayCommand]
+    private async Task Refresh() => await ProbeFalconAsync().ConfigureAwait(true);
+
+    [RelayCommand]
     private async Task SignOut()
     {
         await _auth.SignOutAsync().ConfigureAwait(true);

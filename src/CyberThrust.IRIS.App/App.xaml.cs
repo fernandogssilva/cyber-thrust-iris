@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using CyberThrust.IRIS.App.Services;
 using CyberThrust.IRIS.App.ViewModels;
+using CyberThrust.IRIS.App.Views;
 using CyberThrust.IRIS.Core.Abstractions;
 using CyberThrust.IRIS.Core.Logging;
 using CyberThrust.IRIS.CrowdStrike.Api;
@@ -30,11 +31,16 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        var splash = new SplashWindow();
+        splash.Show();
+        splash.Report("Preparando logs…");
+
         var logFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CyberThrust", "IRIS", "logs");
         Log.Logger = SerilogBuilder.Build("iris", logFolder, LogEventLevel.Information);
 
         try
         {
+            splash.Report("Carregando configuração…");
             Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
                 .ConfigureAppConfiguration((_, cfg) =>
                 {
@@ -94,12 +100,16 @@ public partial class App : Application
                 })
                 .Build();
 
+            splash.Report("Iniciando host e DI…");
             await Host.StartAsync().ConfigureAwait(true);
+            splash.Report("Pronto.");
+            splash.Close();
         }
         catch (Exception ex)
         {
+            splash.Close();
             Log.Fatal(ex, "Falha fatal no bootstrap.");
-            MessageBox.Show($"Falha ao inicializar.\n\n{ex.Message}", "CyberThrust.IRIS — Erro fatal", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Falha ao inicializar.\n\n[IRIS-SYS-9000] {ex.Message}", "CyberThrust.IRIS — Erro fatal", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
     }

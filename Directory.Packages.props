@@ -31,6 +31,7 @@
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.66.2" />
     <PackageVersion Include="Microsoft.Identity.Client.Broker" Version="4.66.2" />
     <PackageVersion Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.66.2" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
 
     <!-- WPF UI -->
     <PackageVersion Include="WPF-UI" Version="3.0.5" />

@@ -10,6 +10,10 @@
     <Nullable>enable</Nullable>
     <PublishSingleFile>false</PublishSingleFile>
     <SelfContained>false</SelfContained>
+    <ApplicationIcon>Assets\iris.ico</ApplicationIcon>
+    <AssemblyTitle>CyberThrust.IRIS</AssemblyTitle>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0 (Internal-NonCommercial)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

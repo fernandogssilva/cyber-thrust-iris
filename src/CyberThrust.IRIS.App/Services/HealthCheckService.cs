@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Net.NetworkInformation;
 using CyberThrust.IRIS.Core.Abstractions;
 using CyberThrust.IRIS.Core.Errors;
@@ -101,7 +102,7 @@ public sealed class HealthCheckService
             }
             catch (Exception ex)
             {
-                return new HealthResult("Falcon API", "CrowdStrike", HealthStatus.Fail, ex.Message, new IrisError(IrisErrorCode.CsCapabilityProbeFailed, ex.Message, ex));
+                return new HealthResult("Falcon API", "CrowdStrike", HealthStatus.Fail, ex.Message, new IrisError(IrisErrorCode.CsCapabilityProbeFailed, ex.Message, Cause: ex));
             }
         }, ct);
 
@@ -126,7 +127,7 @@ public sealed class HealthCheckService
             }
             catch (Exception ex)
             {
-                return new HealthResult("Logs writable", "Sistema", HealthStatus.Fail, ex.Message, new IrisError(IrisErrorCode.SysFileSystemError, ex.Message, ex));
+                return new HealthResult("Logs writable", "Sistema", HealthStatus.Fail, ex.Message, new IrisError(IrisErrorCode.SysFileSystemError, ex.Message, Cause: ex));
             }
         }).Result;
     }

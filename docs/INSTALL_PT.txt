@@ -1,0 +1,24 @@
+CyberThrust.IRIS — Antes de continuar
+=====================================
+
+Este software:
+- É de uso INTERNO / NÃO-COMERCIAL.
+- Executa Resposta a Incidente e Forense remota via CrowdStrike Falcon RTR.
+- Requer credenciais Microsoft Entra ID e API key CrowdStrike Falcon.
+- Funciona sem licenças extras: módulos não disponíveis na sua tenant
+  são desabilitados automaticamente sem quebrar a aplicação.
+
+O que será instalado:
+- CyberThrust.IRIS.exe (executável portátil self-contained ~80 MB).
+- Arquivos de configuração padrão (sem credenciais).
+- Documentação (códigos de erro, setup Entra ID, setup Falcon).
+
+Após instalar:
+1. Edite o arquivo "appsettings.local.json" na pasta de instalação
+   (copie o ".example" para o nome final e preencha).
+2. Inicie o programa pelo Menu Iniciar -> CyberThrust.IRIS.
+3. Faça login com Entra ID.
+4. Pressione F1 para executar o Health Check.
+
+Suporte: github.com/fernandogssilva/cyber-thrust-iris
+Logs: %LOCALAPPDATA%\CyberThrust\IRIS\logs

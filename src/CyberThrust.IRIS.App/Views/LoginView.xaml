@@ -2,6 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{DynamicResource Brush.Bg0}">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+    </UserControl.Resources>
     <Grid>
         <Border Style="{StaticResource Card}" Background="{DynamicResource Brush.Hero}" Width="520" Padding="40" HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel>
@@ -9,8 +12,11 @@
                 <TextBlock Text="CyberThrust.IRIS" FontSize="34" FontWeight="Bold" Foreground="{DynamicResource Brush.Text}" Margin="0,12,0,0"/>
                 <TextBlock Text="Incident Response &amp; Investigation Suite" Style="{StaticResource Dim}" Margin="0,4,0,28"/>
                 <Button Content="Entrar com Microsoft Entra ID" Style="{StaticResource BtnPrimary}" Width="320" HorizontalAlignment="Left" Command="{Binding SignInCommand}"/>
-                <TextBlock Text="{Binding BusyMessage}" Style="{StaticResource Dim}" Margin="0,12,0,0" Visibility="{Binding IsBusy, Converter={x:Static System.Windows.Controls.BooleanToVisibilityConverter.}}"/>
-                <Border Margin="0,20,0,0" Padding="12" Background="#22FF5252" BorderBrush="#88FF5252" BorderThickness="1" CornerRadius="6" Visibility="{Binding ErrorMessage, Converter={x:Static System.Windows.Controls.BooleanToVisibilityConverter.}}">
+                <StackPanel Orientation="Horizontal" Margin="0,12,0,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolVis}}">
+                    <ProgressBar IsIndeterminate="True" Width="120" Height="6" Foreground="{DynamicResource Brush.Accent}" Background="{DynamicResource Brush.Bg2}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding BusyMessage}" Style="{StaticResource Dim}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Border Margin="0,20,0,0" Padding="12" Background="#22FF5252" BorderBrush="#88FF5252" BorderThickness="1" CornerRadius="6" Visibility="{Binding ErrorMessage, Converter={StaticResource BoolVis}}">
                     <StackPanel>
                         <TextBlock Text="{Binding ErrorCode}" FontWeight="Bold" Foreground="{DynamicResource Brush.Danger}"/>
                         <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,4,0,0"/>

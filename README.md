@@ -2,7 +2,22 @@
 
 **Incident Response & Investigation Suite** — aplicação Windows nativa de DFIR que orquestra CrowdStrike Falcon RTR, Entra ID e ferramentas open-source (KAPE, Velociraptor, UAC, WinPmem, SuperMem, MemProcFS, Volatility) numa única interface modular, leve e responsiva.
 
-> **Build status**: ![internal](https://img.shields.io/badge/build-internal-blue) ![license](https://img.shields.io/badge/license-Non--Commercial-orange) ![dotnet](https://img.shields.io/badge/.NET-8.0-512BD4) ![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)
+![internal](https://img.shields.io/badge/build-internal-blue) ![license](https://img.shields.io/badge/license-Non--Commercial-orange) ![dotnet](https://img.shields.io/badge/.NET-8.0-512BD4) ![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)
+
+## 📥 Download — instale com 2 cliques
+
+> 👉 **Pegue o instalador na [página de Releases](https://github.com/fernandogssilva/cyber-thrust-iris/releases/latest)**.
+
+| Pacote | Para quem | Tamanho |
+|---|---|---|
+| **`CyberThrust.IRIS-0.1.0-Setup.exe`** | **Maioria dos usuários** — wizard de instalação em pt-BR/en, atalhos no Menu Iniciar, uninstaller. | ~74 MB |
+| `CyberThrust.IRIS-0.1.0-Portable-win-x64.zip` | Quem precisa rodar sem instalar (USB, máquina restrita). Extraia e dê duplo-clique no `.exe`. | ~74 MB |
+
+**Requisitos**: Windows 10 22H2 ou Windows 11. **Nenhum runtime adicional** — o `.NET 8` está embutido no executável (self-contained, single-file).
+
+> ⚠️ Primeira execução vai mostrar **SmartScreen "Editor desconhecido"** — clique em "Mais informações" → "Executar assim mesmo". Próxima versão será assinada com certificado CYBER THRUST.
+
+**Após instalar**: edite `appsettings.local.json` na pasta de instalação preenchendo Tenant Entra + API key Falcon. Veja [docs/ENTRA_SETUP.md](docs/ENTRA_SETUP.md) e [docs/CROWDSTRIKE_SETUP.md](docs/CROWDSTRIKE_SETUP.md).
 
 ## O que faz
 
@@ -15,13 +30,24 @@
 - **Self-Validation**: tela de Health Check executa 30+ verificações automáticas e reporta código de erro IRIS-xxxxx claro para qualquer falha.
 - **Relatórios** de incidente, vulnerabilidades, falhas de configuração — exportáveis em PDF/DOCX/JSON.
 
+## ⌨️ Atalhos de teclado
+
+| Atalho | Ação |
+|---|---|
+| `Ctrl+1..6` | Dashboard, Incidentes, Console RTR, Forense, Memória, Árvore de Ataque |
+| `F1` ou `Ctrl+7` | Health Check (auto-validação) |
+| `Ctrl+8` | Configurações |
+| `Ctrl+L` | Sair / sign-out |
+| `F5` | Atualizar (re-probe Falcon) |
+
 ## Requisitos
 
 - Windows 10 22H2 / Windows 11
-- .NET 8 Desktop Runtime ([download](https://dotnet.microsoft.com/download/dotnet/8.0))
 - Microsoft Edge WebView2 Runtime (pré-instalado no Windows 11)
 - Conta Entra ID (cliente registrado — ver [docs/ENTRA_SETUP.md](docs/ENTRA_SETUP.md))
 - API key CrowdStrike Falcon com escopos mínimos (ver [docs/CROWDSTRIKE_SETUP.md](docs/CROWDSTRIKE_SETUP.md))
+
+> Você **não precisa** instalar .NET separadamente — o instalador embute o runtime.
 
 Funciona **sem licenças extras** do Falcon — recursos cuja licença não está presente aparecem desabilitados com tooltip explicativo, nunca quebram a aplicação.
 
