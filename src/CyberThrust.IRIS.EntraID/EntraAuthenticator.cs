@@ -34,16 +34,33 @@ public sealed class EntraAuthenticator : IAuthenticator, IAsyncDisposable
         if (string.IsNullOrWhiteSpace(_options.ClientId))
             throw new IrisException(IrisErrorCode.CfgEntraSectionInvalid, "EntraId:ClientId não configurado em appsettings.local.json.");
 
+        // ClientId placeholder zerado → não tenta inicializar MSAL/WAM (P/Invoke nativo pode crashar)
+        if (_options.ClientId.StartsWith("00000000", StringComparison.Ordinal))
+        {
+            throw new IrisException(IrisErrorCode.CfgEntraSectionInvalid,
+                "EntraId:ClientId está como placeholder zero. Configure em appsettings.local.json antes de fazer login.",
+                hint: "Veja docs/ENTRA_SETUP.md");
+        }
+
         var builder = PublicClientApplicationBuilder.Create(_options.ClientId)
             .WithAuthority($"https://login.microsoftonline.com/{_options.TenantId}")
             .WithRedirectUri(_options.RedirectUri);
 
+        // WAM broker só quando explicitamente habilitado + Windows. WAM falha nativamente em
+        // configurações inválidas (ClientId não registrado no tenant), então mantemos opt-in.
         if (_options.UseBroker && OperatingSystem.IsWindows())
         {
-            builder = builder.WithBroker(new BrokerOptions(BrokerOptions.OperatingSystems.Windows)
+            try
             {
-                Title = "CyberThrust.IRIS"
-            });
+                builder = builder.WithBroker(new BrokerOptions(BrokerOptions.OperatingSystems.Windows)
+                {
+                    Title = "CyberThrust.IRIS"
+                });
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning(ex, "WAM broker indisponível, usando browser fallback.");
+            }
         }
 
         _app = builder.Build();

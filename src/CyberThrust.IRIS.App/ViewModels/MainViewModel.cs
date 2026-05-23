@@ -32,15 +32,28 @@ public partial class MainViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
+        // Apenas abre tela de login. O SignInSilent é disparado depois,
+        // protegido por try/catch no LoginViewModel — evita crashes nativos
+        // do MSAL durante o bootstrap.
         _nav.NavigateTo("login");
-        var silent = await _auth.SignInSilentAsync().ConfigureAwait(true);
-        if (silent.IsSuccess)
+        await Task.CompletedTask;
+    }
+
+    /// <summary>Chamado após login bem-sucedido para tentar uma re-autenticação silenciosa em sessões futuras.</summary>
+    public async Task TrySilentAsync()
+    {
+        try
         {
-            UserDisplay = silent.Value!.DisplayName;
-            EntraStatus = "Conectado"; EntraStatusColor = Brushes.LimeGreen;
-            await ProbeFalconAsync().ConfigureAwait(true);
-            _nav.NavigateTo("dashboard");
+            var silent = await _auth.SignInSilentAsync().ConfigureAwait(true);
+            if (silent.IsSuccess)
+            {
+                UserDisplay = silent.Value!.DisplayName;
+                EntraStatus = "Conectado"; EntraStatusColor = Brushes.LimeGreen;
+                await ProbeFalconAsync().ConfigureAwait(true);
+                _nav.NavigateTo("dashboard");
+            }
         }
+        catch { /* silencioso — usuário precisa fazer login manual */ }
     }
 
     [RelayCommand]
