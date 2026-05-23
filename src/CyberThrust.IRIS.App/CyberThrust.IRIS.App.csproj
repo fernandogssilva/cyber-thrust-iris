@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>CyberThrust.IRIS.App</RootNamespace>
+    <AssemblyName>CyberThrust.IRIS</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <PublishSingleFile>false</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CyberThrust.IRIS.Core\CyberThrust.IRIS.Core.csproj" />
+    <ProjectReference Include="..\CyberThrust.IRIS.EntraID\CyberThrust.IRIS.EntraID.csproj" />
+    <ProjectReference Include="..\CyberThrust.IRIS.CrowdStrike\CyberThrust.IRIS.CrowdStrike.csproj" />
+    <ProjectReference Include="..\CyberThrust.IRIS.Forensics\CyberThrust.IRIS.Forensics.csproj" />
+    <ProjectReference Include="..\CyberThrust.IRIS.Memory\CyberThrust.IRIS.Memory.csproj" />
+    <ProjectReference Include="..\CyberThrust.IRIS.Graph\CyberThrust.IRIS.Graph.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="WPF-UI" />
+    <PackageReference Include="Microsoft.Web.WebView2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.local.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>appsettings.json</DependentUpon>
+    </None>
+    <None Update="WebAssets\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

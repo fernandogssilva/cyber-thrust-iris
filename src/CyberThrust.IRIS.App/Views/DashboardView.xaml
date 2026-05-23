@@ -1,0 +1,66 @@
+<UserControl x:Class="CyberThrust.IRIS.App.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource Brush.Bg0}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Margin="0,0,0,16">
+            <TextBlock Text="Dashboard" Style="{StaticResource H1}"/>
+            <Button DockPanel.Dock="Right" Content="Atualizar" Style="{StaticResource BtnGhost}" Command="{Binding RefreshCommand}"/>
+        </DockPanel>
+
+        <UniformGrid Grid.Row="1" Columns="4" Rows="1" Margin="0,0,0,16">
+            <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="Detecções (50 mais recentes)" Style="{StaticResource Dim}"/>
+                    <TextBlock Text="{Binding RecentDetections.Count}" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource Brush.Accent}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="4,0">
+                <StackPanel>
+                    <TextBlock Text="Críticas" Style="{StaticResource Dim}"/>
+                    <TextBlock Text="{Binding CriticalCount}" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource Brush.Critical}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="4,0">
+                <StackPanel>
+                    <TextBlock Text="Altas" Style="{StaticResource Dim}"/>
+                    <TextBlock Text="{Binding HighCount}" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource Brush.Danger}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="8,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="Médias" Style="{StaticResource Dim}"/>
+                    <TextBlock Text="{Binding MediumCount}" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource Brush.Warn}"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Detecções recentes" Style="{StaticResource H2}" Margin="0,0,0,12"/>
+                <DataGrid Grid.Row="1" ItemsSource="{Binding RecentDetections}" AutoGenerateColumns="False" HeadersVisibility="Column"
+                          Background="Transparent" RowBackground="Transparent" AlternatingRowBackground="#08FFFFFF"
+                          GridLinesVisibility="None" BorderThickness="0" Foreground="{DynamicResource Brush.Text}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Severidade" Binding="{Binding Severity}" Width="100"/>
+                        <DataGridTextColumn Header="Host" Binding="{Binding Hostname}" Width="200"/>
+                        <DataGridTextColumn Header="Tática" Binding="{Binding Tactic}" Width="160"/>
+                        <DataGridTextColumn Header="Técnica" Binding="{Binding Technique}" Width="160"/>
+                        <DataGridTextColumn Header="Descrição" Binding="{Binding Description}" Width="*"/>
+                        <DataGridTextColumn Header="Timestamp" Binding="{Binding TimestampUtc, StringFormat=u}" Width="160"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

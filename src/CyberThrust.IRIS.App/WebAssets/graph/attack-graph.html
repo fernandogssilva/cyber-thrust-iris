@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>IRIS — Attack Graph</title>
+  <style>
+    html, body, #cy { height: 100%; margin: 0; padding: 0; background: #05060a; color: #e6ecff; font-family: 'Segoe UI Variable', 'Segoe UI', sans-serif; }
+    #legend { position: absolute; top: 12px; left: 12px; background: rgba(11,15,24,0.85); border: 1px solid #253152; border-radius: 8px; padding: 10px 14px; font-size: 12px; box-shadow: 0 0 18px rgba(0,229,255,0.15); }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  </style>
+  <!-- Cytoscape carregado de CDN; em ambientes air-gap, troque por arquivo local em /WebAssets/graph/ -->
+  <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+  <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+</head>
+<body>
+  <div id="legend">
+    <div><span class="dot" style="background:#FF0080"></span>Detection</div>
+    <div><span class="dot" style="background:#00E5FF"></span>Host</div>
+    <div><span class="dot" style="background:#7C4DFF"></span>User / IOC</div>
+    <div><span class="dot" style="background:#00E676"></span>Process</div>
+    <div><span class="dot" style="background:#FFD740"></span>Network</div>
+  </div>
+  <div id="cy"></div>
+  <script>
+    let cy = null;
+    function loadGraph(payload) {
+      cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: payload.elements,
+        style: [
+          { selector: 'node',
+            style: {
+              'label': 'data(label)',
+              'color': '#e6ecff',
+              'text-valign': 'center',
+              'text-halign': 'center',
+              'font-size': '11px',
+              'text-outline-width': 2,
+              'text-outline-color': '#05060a',
+              'width': 56, 'height': 56,
+              'background-color': '#00E5FF',
+              'overlay-padding': 6
+            } },
+          { selector: 'node[kind = "Detection"]', style: { 'background-color': '#FF0080', 'shape': 'diamond' } },
+          { selector: 'node[kind = "Host"]',      style: { 'background-color': '#00E5FF' } },
+          { selector: 'node[kind = "User"]',      style: { 'background-color': '#7C4DFF' } },
+          { selector: 'node[kind = "Process"]',   style: { 'background-color': '#00E676', 'shape': 'round-rectangle' } },
+          { selector: 'node[kind = "NetworkEndpoint"]', style: { 'background-color': '#FFD740', 'shape': 'hexagon' } },
+          { selector: 'node[severity = "Critical"]', style: { 'border-width': 3, 'border-color': '#FF0080' } },
+          { selector: 'edge',
+            style: {
+              'width': 1.4, 'curve-style': 'bezier',
+              'line-color': '#253152', 'target-arrow-color': '#00E5FF',
+              'target-arrow-shape': 'triangle', 'opacity': 0.85,
+              'label': 'data(label)', 'font-size': '9px', 'color': '#8C9BC9'
+            } }
+        ],
+        layout: { name: 'dagre', rankDir: 'LR', nodeSep: 40, rankSep: 80, animate: true, animationDuration: 600 }
+      });
+    }
+    window.loadGraph = loadGraph;
+    // grafo vazio inicial
+    loadGraph({ elements: [] });
+  </script>
+</body>
+</html>

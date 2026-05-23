@@ -1,0 +1,17 @@
+{
+  "EntraId": {
+    "TenantId": "SEU-TENANT-ID-AQUI",
+    "ClientId": "SEU-CLIENT-ID-AQUI",
+    "RedirectUri": "http://localhost",
+    "Scopes": ["User.Read", "Group.Read.All"],
+    "UseBroker": true
+  },
+  "Falcon": {
+    "Cloud": "us-1",
+    "ClientId": "SUA-API-KEY-CLIENT-ID",
+    "ClientSecret": "SUA-API-KEY-CLIENT-SECRET"
+  },
+  "Exfil": {
+    "PresignedUrlTemplate": "https://seu-bucket.s3.amazonaws.com/iris/{aid}/{file}?X-Amz-..."
+  }
+}

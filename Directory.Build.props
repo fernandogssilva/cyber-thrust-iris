@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Deterministic>true</Deterministic>
+    <Company>CYBER THRUST</Company>
+    <Product>CyberThrust.IRIS</Product>
+    <Copyright>Copyright © CYBER THRUST 2026</Copyright>
+    <Version>0.1.0</Version>
+    <NeutralLanguage>pt-BR</NeutralLanguage>
+    <RootNamespace>CyberThrust.IRIS</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>portable</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+</Project>

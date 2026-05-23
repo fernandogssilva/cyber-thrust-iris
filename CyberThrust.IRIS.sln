@@ -1,0 +1,96 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution items", "solution items", "{7B7B0000-0000-0000-0000-000000000001}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7B7B0000-0000-0000-0000-000000000002}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7B7B0000-0000-0000-0000-000000000003}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7B7B0000-0000-0000-0000-000000000004}"
+	ProjectSection(SolutionItems) = preProject
+		docs\ARCHITECTURE.md = docs\ARCHITECTURE.md
+		docs\ERROR_CODES.md = docs\ERROR_CODES.md
+		docs\INSTALL.md = docs\INSTALL.md
+		docs\ENTRA_SETUP.md = docs\ENTRA_SETUP.md
+		docs\CROWDSTRIKE_SETUP.md = docs\CROWDSTRIKE_SETUP.md
+		docs\SECURITY.md = docs\SECURITY.md
+		docs\CTO_REVIEW.md = docs\CTO_REVIEW.md
+		docs\CONTRIBUTING.md = docs\CONTRIBUTING.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.Core", "src\CyberThrust.IRIS.Core\CyberThrust.IRIS.Core.csproj", "{A0010001-0000-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.EntraID", "src\CyberThrust.IRIS.EntraID\CyberThrust.IRIS.EntraID.csproj", "{A0010002-0000-0000-0000-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.CrowdStrike", "src\CyberThrust.IRIS.CrowdStrike\CyberThrust.IRIS.CrowdStrike.csproj", "{A0010003-0000-0000-0000-000000000003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.Forensics", "src\CyberThrust.IRIS.Forensics\CyberThrust.IRIS.Forensics.csproj", "{A0010004-0000-0000-0000-000000000004}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.Memory", "src\CyberThrust.IRIS.Memory\CyberThrust.IRIS.Memory.csproj", "{A0010005-0000-0000-0000-000000000005}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.Graph", "src\CyberThrust.IRIS.Graph\CyberThrust.IRIS.Graph.csproj", "{A0010006-0000-0000-0000-000000000006}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.App", "src\CyberThrust.IRIS.App\CyberThrust.IRIS.App.csproj", "{A0010007-0000-0000-0000-000000000007}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberThrust.IRIS.Tests", "tests\CyberThrust.IRIS.Tests\CyberThrust.IRIS.Tests.csproj", "{A0010008-0000-0000-0000-000000000008}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A0010001-0000-0000-0000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010001-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010001-0000-0000-0000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010001-0000-0000-0000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0010002-0000-0000-0000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010002-0000-0000-0000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010002-0000-0000-0000-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010002-0000-0000-0000-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0010003-0000-0000-0000-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010003-0000-0000-0000-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010003-0000-0000-0000-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010003-0000-0000-0000-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0010004-0000-0000-0000-000000000004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010004-0000-0000-0000-000000000004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010004-0000-0000-0000-000000000004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010004-0000-0000-0000-000000000004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0010005-0000-0000-0000-000000000005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010005-0000-0000-0000-000000000005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010005-0000-0000-0000-000000000005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010005-0000-0000-0000-000000000005}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0010006-0000-0000-0000-000000000006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010006-0000-0000-0000-000000000006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010006-0000-0000-0000-000000000006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010006-0000-0000-0000-000000000006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0010007-0000-0000-0000-000000000007}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010007-0000-0000-0000-000000000007}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010007-0000-0000-0000-000000000007}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010007-0000-0000-0000-000000000007}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0010008-0000-0000-0000-000000000008}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0010008-0000-0000-0000-000000000008}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0010008-0000-0000-0000-000000000008}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0010008-0000-0000-0000-000000000008}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A0010001-0000-0000-0000-000000000001} = {7B7B0000-0000-0000-0000-000000000002}
+		{A0010002-0000-0000-0000-000000000002} = {7B7B0000-0000-0000-0000-000000000002}
+		{A0010003-0000-0000-0000-000000000003} = {7B7B0000-0000-0000-0000-000000000002}
+		{A0010004-0000-0000-0000-000000000004} = {7B7B0000-0000-0000-0000-000000000002}
+		{A0010005-0000-0000-0000-000000000005} = {7B7B0000-0000-0000-0000-000000000002}
+		{A0010006-0000-0000-0000-000000000006} = {7B7B0000-0000-0000-0000-000000000002}
+		{A0010007-0000-0000-0000-000000000007} = {7B7B0000-0000-0000-0000-000000000002}
+		{A0010008-0000-0000-0000-000000000008} = {7B7B0000-0000-0000-0000-000000000003}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,108 @@
+## ============================================================
+## CyberThrust.IRIS — .gitignore
+## ============================================================
+
+# Build outputs
+bin/
+obj/
+out/
+build/
+publish/
+*.binlog
+
+# IDE
+.vs/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+*.user
+*.suo
+*.userprefs
+*.swp
+.idea/
+
+# Rider
+_ReSharper*/
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.xml
+coverage*.json
+*.lcov
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# Logs
+*.log
+logs/
+NLog.log
+NLog.config.user
+
+# Secrets — NUNCA commitar
+appsettings.local.json
+appsettings.Development.json
+appsettings.*.local.json
+*.pfx
+*.snk
+*.p12
+.env
+.env.local
+secrets.json
+client_secret*.json
+
+# Telemetria local / RTR collections
+collections/
+evidence/
+*.kape
+*.aff4
+*.raw
+*.vmem
+*.dmp
+*.mem
+
+# External tools (binários grandes baixados sob demanda)
+tools/external/kape/
+tools/external/velociraptor/
+tools/external/winpmem/
+tools/external/uac/
+tools/external/supermem/
+tools/external/memprocfs/
+
+# MSIX/MSI build
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+AppPackages/
+BundleArtifacts/
+
+# WebView2 user data
+WebView2/
+*.WebView2.UserData/
+
+# Local DPAPI token caches
+.tokencache
+*.bin.cache
+
+# Outros
+*.tmp
+*.bak

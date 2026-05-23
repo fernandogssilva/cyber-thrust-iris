@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
+    <UseWPF>false</UseWPF>
+    <RootNamespace>CyberThrust.IRIS.EntraID</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CyberThrust.IRIS.Core\CyberThrust.IRIS.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Identity.Client" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+</Project>

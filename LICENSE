@@ -1,0 +1,43 @@
+CYBER THRUST — INTERNAL USE / NON-COMMERCIAL SOURCE-AVAILABLE LICENSE
+Copyright (c) 2026 CYBER THRUST. All rights reserved.
+
+This software ("CyberThrust.IRIS") is provided to authorized users of
+CYBER THRUST and its clients for INTERNAL, NON-COMMERCIAL use exclusively
+in the context of digital forensics, incident response, threat hunting
+and security operations conducted under signed engagement contracts.
+
+PERMITTED USES
+1. Internal use by CYBER THRUST employees and contractors.
+2. Use by CYBER THRUST clients within the scope of an active services
+   contract that specifically authorizes deployment of this software.
+3. Personal study, evaluation and security research.
+
+PROHIBITED USES
+1. Redistribution in source or binary form, in whole or in part, to any
+   third party not covered by an active CYBER THRUST contract.
+2. Resale, sub-licensing, hosting as a service, white-labeling, or
+   any other COMMERCIAL exploitation.
+3. Removal of CYBER THRUST branding, copyright notices, or the
+   "Internal Use / Non-Commercial Build" label visible in the UI.
+4. Use against systems for which the operator does not hold explicit,
+   documented written authorization to perform incident response,
+   forensic acquisition or any active response action.
+
+THIRD-PARTY COMPONENTS
+This product integrates with third-party tools (CrowdStrike Falcon,
+KAPE, Velociraptor, WinPmem, UAC, Volatility, MemProcFS, SuperMem,
+Cytoscape.js, MSAL, Serilog, etc.) each governed by its own license.
+Their licenses prevail for their respective components. The user is
+responsible for compliance with each one.
+
+WARRANTY DISCLAIMER
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL CYBER THRUST BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+By using this software you acknowledge having read and accepted the
+terms above and the LGPD/GDPR data-handling policy bundled in
+docs/SECURITY.md.
