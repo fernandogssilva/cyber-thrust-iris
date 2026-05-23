@@ -10,12 +10,14 @@
 
 | Pacote | Para quem | Tamanho |
 |---|---|---|
-| **`CyberThrust.IRIS-0.1.0-Setup.exe`** | **Maioria dos usuários** — wizard de instalação em pt-BR/en, atalhos no Menu Iniciar, uninstaller. | ~74 MB |
-| `CyberThrust.IRIS-0.1.0-Portable-win-x64.zip` | Quem precisa rodar sem instalar (USB, máquina restrita). Extraia e dê duplo-clique no `.exe`. | ~74 MB |
+| **`CyberThrust.IRIS-0.1.1-Setup.exe`** | **Maioria dos usuários** — wizard pt-BR/en, atalhos no Menu Iniciar, uninstaller. **Assinado**. | ~74 MB |
+| `CyberThrust.IRIS-0.1.1-Portable-win-x64.zip` | Roda sem instalar (USB, máquina restrita). Extraia e dê duplo-clique no `.exe`. **Assinado**. | ~74 MB |
+| `cyberthrust-codesign-public.cer` | Cert público para o admin de TI importar antes da instalação. | <1 KB |
 
 **Requisitos**: Windows 10 22H2 ou Windows 11. **Nenhum runtime adicional** — o `.NET 8` está embutido no executável (self-contained, single-file).
 
-> ⚠️ Primeira execução vai mostrar **SmartScreen "Editor desconhecido"** — clique em "Mais informações" → "Executar assim mesmo". Próxima versão será assinada com certificado CYBER THRUST.
+> ✅ A partir da **v0.1.1** os binários são **assinados** (Authenticode SHA-256 + timestamp DigiCert RFC 3161) com certificado self-signed CYBER THRUST.
+> Para que o SmartScreen aceite a assinatura, o **admin de TI do cliente** importa `cyberthrust-codesign-public.cer` em **Trusted Root** + **Trusted Publisher** (via Intune, GPO ou PowerShell). Passo-a-passo: **[docs/TRUST_CERTIFICATE.md](docs/TRUST_CERTIFICATE.md)**. Roadmap para OV/EV/Microsoft Store: **[docs/AUTHENTICODE_ROADMAP.md](docs/AUTHENTICODE_ROADMAP.md)**.
 
 **Após instalar**: edite `appsettings.local.json` na pasta de instalação preenchendo Tenant Entra + API key Falcon. Veja [docs/ENTRA_SETUP.md](docs/ENTRA_SETUP.md) e [docs/CROWDSTRIKE_SETUP.md](docs/CROWDSTRIKE_SETUP.md).
 
