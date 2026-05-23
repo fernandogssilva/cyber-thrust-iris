@@ -68,10 +68,18 @@ public sealed class FalconCapabilityProbe
         try
         {
             using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
-            // 200/206 → licenciado. 401 → token problem (não conclusivo).
-            // 403/404 → não licenciado / endpoint indisponível.
-            // 429 → licenciado mas rate-limited.
-            return resp.StatusCode is HttpStatusCode.OK or HttpStatusCode.PartialContent or HttpStatusCode.TooManyRequests;
+            // Interpretação dos códigos HTTP (validado em tenant us-2 real):
+            //  200/206              → módulo licenciado + scope da API key OK
+            //  429 TooManyRequests  → licenciado, apenas rate-limited
+            //  405 MethodNotAllowed → endpoint write-only existe (Hosts actions, RTR sessions) — módulo presente
+            //  403 Forbidden        → módulo provavelmente licenciado mas a API key não tem o scope necessário
+            //                         (ajustável no Falcon Console sem custo adicional)
+            //  404 NotFound         → módulo NÃO está disponível na tenant (requer contrato adicional)
+            //  401 Unauthorized     → token ruim (não conclusivo)
+            return resp.StatusCode is HttpStatusCode.OK
+                or HttpStatusCode.PartialContent
+                or HttpStatusCode.TooManyRequests
+                or HttpStatusCode.MethodNotAllowed;
         }
         catch
         {
