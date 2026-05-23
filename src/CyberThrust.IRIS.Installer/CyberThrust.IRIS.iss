@@ -4,7 +4,7 @@
 ; ===========================================================
 
 #define MyAppName      "CyberThrust.IRIS"
-#define MyAppVersion   "0.1.1"
+#define MyAppVersion   "0.2.0"
 #define MyAppPublisher "CYBER THRUST"
 #define MyAppURL       "https://github.com/fernandogssilva/cyber-thrust-iris"
 #define MyAppExeName   "CyberThrust.IRIS.exe"
@@ -13,7 +13,7 @@
 AppId={{A0010007-CYBR-THST-IRIS-000000000001}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppVerName={#MyAppName} {#MyAppVersion} (Internal Use / Non-Commercial)
+AppVerName={#MyAppName} {#MyAppVersion} (Apache-2.0 Open Source)
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}/issues
@@ -42,7 +42,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName} {#MyAppVersion}
 VersionInfoVersion={#MyAppVersion}.0
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Incident Response & Investigation Suite (Internal Use / Non-Commercial)
+VersionInfoDescription=Incident Response & Investigation Suite (Apache-2.0 Open Source)
 ShowLanguageDialog=yes
 LanguageDetectionMethod=uilanguage
 
@@ -81,9 +81,11 @@ function InitializeSetup(): Boolean;
 begin
   Result := True;
   MsgBox(
-    'AVISO — CyberThrust.IRIS é uma ferramenta de RESPOSTA A INCIDENTE.' + #13#10#13#10 +
-    'Build de USO INTERNO / NÃO-COMERCIAL. Use somente em hosts para os quais ' +
-    'você tem autorização escrita de coleta forense e contenção.' + #13#10#13#10 +
+    'CyberThrust.IRIS — Open Source DFIR Suite (Apache 2.0).' + #13#10#13#10 +
+    'IMPORTANTE: esta ferramenta executa Resposta a Incidente e Forense Remota.' + #13#10 +
+    'Use somente contra hosts para os quais você tem autorização escrita.' + #13#10#13#10 +
+    'Uso não autorizado pode violar a Lei 12.737/2012 (Lei Carolina Dieckmann),' + #13#10 +
+    'CFAA (EUA), GDPR (UE) e equivalentes.' + #13#10#13#10 +
     'Continuar com a instalação?',
     mbConfirmation, MB_YESNO);
 end;

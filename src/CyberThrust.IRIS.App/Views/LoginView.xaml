@@ -22,7 +22,7 @@
                         <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource Body}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
-                <TextBlock Text="Internal Use / Non-Commercial Build" Foreground="{DynamicResource Brush.Warn}" FontSize="11" Margin="0,32,0,0"/>
+                <TextBlock Text="Open Source · Apache 2.0 · github.com/fernandogssilva/cyber-thrust-iris" Foreground="{DynamicResource Brush.Warn}" FontSize="11" Margin="0,32,0,0"/>
             </StackPanel>
         </Border>
     </Grid>

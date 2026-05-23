@@ -46,7 +46,7 @@
                     <TextBlock Text="CyberThrust" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource Brush.Text}"/>
                     <TextBlock Text=".IRIS" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource Brush.Accent}"/>
                     <Border Style="{StaticResource ChipBase}" Background="#22FFD740" BorderBrush="#88FFD740" Margin="12,0,0,0">
-                        <TextBlock Text="Internal Use / Non-Commercial Build" FontSize="11" Foreground="{DynamicResource Brush.Warn}"/>
+                        <TextBlock Text="Open Source · Apache 2.0" FontSize="11" Foreground="{DynamicResource Brush.Warn}"/>
                     </Border>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">

@@ -1,0 +1,51 @@
+name: ✨ Feature request
+description: Propose a new feature or improvement.
+title: "[Feature] "
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the real DFIR / IR workflow gap, not a solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Which module would this affect?
+      multiple: true
+      options:
+        - Core / Errors / Result
+        - EntraID auth
+        - CrowdStrike REST / RTR
+        - Forensics (KAPE/Velociraptor/UAC)
+        - Memory (xmemdump/DumpIt/WinPmem/SuperMem)
+        - Graph (Cytoscape)
+        - UI / UX
+        - Health Check
+        - Installer / Distribution
+        - Documentation
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have searched existing issues / discussions
+          required: true

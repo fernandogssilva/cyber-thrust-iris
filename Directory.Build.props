@@ -9,8 +9,12 @@
     <Deterministic>true</Deterministic>
     <Company>CYBER THRUST</Company>
     <Product>CyberThrust.IRIS</Product>
-    <Copyright>Copyright © CYBER THRUST 2026</Copyright>
-    <Version>0.1.0</Version>
+    <Copyright>Copyright © 2026 CYBER THRUST and contributors — Apache License 2.0</Copyright>
+    <Version>0.2.0</Version>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/fernandogssilva/cyber-thrust-iris</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/fernandogssilva/cyber-thrust-iris</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <NeutralLanguage>pt-BR</NeutralLanguage>
     <RootNamespace>CyberThrust.IRIS</RootNamespace>
   </PropertyGroup>

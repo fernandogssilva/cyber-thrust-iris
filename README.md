@@ -1,109 +1,129 @@
 # CyberThrust.IRIS
 
-**Incident Response & Investigation Suite** — aplicação Windows nativa de DFIR que orquestra CrowdStrike Falcon RTR, Entra ID e ferramentas open-source (KAPE, Velociraptor, UAC, WinPmem, SuperMem, MemProcFS, Volatility) numa única interface modular, leve e responsiva.
+**Incident Response & Investigation Suite** — open source Windows DFIR application that orchestrates **CrowdStrike Falcon RTR**, **Microsoft Entra ID** and battle-tested open source tools (KAPE, Velociraptor, UAC, WinPmem, SuperMem, MemProcFS, Volatility) inside a single modular, fast, dark-futuristic interface.
 
-![internal](https://img.shields.io/badge/build-internal-blue) ![license](https://img.shields.io/badge/license-Non--Commercial-orange) ![dotnet](https://img.shields.io/badge/.NET-8.0-512BD4) ![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4.svg)](#)
+[![Release](https://img.shields.io/github/v/release/fernandogssilva/cyber-thrust-iris?include_prereleases)](https://github.com/fernandogssilva/cyber-thrust-iris/releases/latest)
+[![Issues](https://img.shields.io/github/issues/fernandogssilva/cyber-thrust-iris)](https://github.com/fernandogssilva/cyber-thrust-iris/issues)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
 
-## 📥 Download — instale com 2 cliques
+---
 
-> 👉 **Pegue o instalador na [página de Releases](https://github.com/fernandogssilva/cyber-thrust-iris/releases/latest)**.
+## 📥 Download — install with 2 clicks
 
-| Pacote | Para quem | Tamanho |
+> 👉 **Grab the latest installer from [Releases](https://github.com/fernandogssilva/cyber-thrust-iris/releases/latest)**.
+
+| Package | For whom | Size |
 |---|---|---|
-| **`CyberThrust.IRIS-0.1.1-Setup.exe`** | **Maioria dos usuários** — wizard pt-BR/en, atalhos no Menu Iniciar, uninstaller. **Assinado**. | ~74 MB |
-| `CyberThrust.IRIS-0.1.1-Portable-win-x64.zip` | Roda sem instalar (USB, máquina restrita). Extraia e dê duplo-clique no `.exe`. **Assinado**. | ~74 MB |
-| `cyberthrust-codesign-public.cer` | Cert público para o admin de TI importar antes da instalação. | <1 KB |
+| **`CyberThrust.IRIS-0.2.0-Setup.exe`** | Most users — pt-BR/en wizard, Start Menu shortcut, uninstaller. **Signed.** | ~74 MB |
+| `CyberThrust.IRIS-0.2.0-Portable-win-x64.zip` | Runs without installing (USB, restricted machine). Extract and double-click. **Signed.** | ~74 MB |
+| `cyberthrust-codesign-public.cer` | Public cert for your IT admin to trust before first install. | < 1 KB |
+| `SHA256SUMS.txt` | Integrity manifest for all release assets. | < 1 KB |
 
-**Requisitos**: Windows 10 22H2 ou Windows 11. **Nenhum runtime adicional** — o `.NET 8` está embutido no executável (self-contained, single-file).
+**Requirements**: Windows 10 22H2 or Windows 11. **No additional runtime needed** — `.NET 8` is bundled (self-contained, single-file).
 
-> ✅ A partir da **v0.1.1** os binários são **assinados** (Authenticode SHA-256 + timestamp DigiCert RFC 3161) com certificado self-signed CYBER THRUST.
-> Para que o SmartScreen aceite a assinatura, o **admin de TI do cliente** importa `cyberthrust-codesign-public.cer` em **Trusted Root** + **Trusted Publisher** (via Intune, GPO ou PowerShell). Passo-a-passo: **[docs/TRUST_CERTIFICATE.md](docs/TRUST_CERTIFICATE.md)**. Roadmap para OV/EV/Microsoft Store: **[docs/AUTHENTICODE_ROADMAP.md](docs/AUTHENTICODE_ROADMAP.md)**.
+> ✅ Binaries are **Authenticode-signed** (SHA-256 + DigiCert RFC 3161 timestamp) with a self-signed CYBER THRUST certificate.
+> To silence SmartScreen, your IT admin should import `cyberthrust-codesign-public.cer` into **Trusted Root** + **Trusted Publisher** via Intune, GPO or PowerShell. Step-by-step in **[docs/TRUST_CERTIFICATE.md](docs/TRUST_CERTIFICATE.md)**.
 
-**Após instalar**: edite `appsettings.local.json` na pasta de instalação preenchendo Tenant Entra + API key Falcon. Veja [docs/ENTRA_SETUP.md](docs/ENTRA_SETUP.md) e [docs/CROWDSTRIKE_SETUP.md](docs/CROWDSTRIKE_SETUP.md).
+**After install**: edit `appsettings.local.json` in the install folder with your Entra Tenant + Falcon API key. See [docs/ENTRA_SETUP.md](docs/ENTRA_SETUP.md) and [docs/CROWDSTRIKE_SETUP.md](docs/CROWDSTRIKE_SETUP.md).
 
-## O que faz
+---
 
-- **Login Entra ID** com MSAL (PKCE, Conditional Access, cache DPAPI).
-- **Console CrowdStrike** com **Falcon Capability Probe** — detecta automaticamente quais módulos a tenant tem licenciados (Insight XDR, Identity Protection, Spotlight, LogScale, Discover, Surface) e **degrada graciosamente** sem quebrar a UI quando algo falta.
-- **RTR em escala**: shell remoto contra 1 a N hosts, batch de comandos, runscripts, get/put, kill/quarantine, isolamento.
-- **Forense remota** via RTR: KAPE (Win), UAC (Linux/macOS/ESXi), Velociraptor offline collector — exfil direto para S3/Azure Blob com presigned URL (sem o gargalo de 4GB do `get`).
-- **Memória RAM**: `xmemdump` nativo + Magnet DumpIt / WinPmem como fallback + análise pós-coleta com SuperMem e MemProcFS.
-- **Grafo de ataque futurista** (Cytoscape.js via WebView2) com IOC → User → Process → Network → Lateral movement, linha do tempo e mapeamento MITRE ATT&CK.
-- **Self-Validation**: tela de Health Check executa 30+ verificações automáticas e reporta código de erro IRIS-xxxxx claro para qualquer falha.
-- **Relatórios** de incidente, vulnerabilidades, falhas de configuração — exportáveis em PDF/DOCX/JSON.
+## 🚀 What it does
 
-## ⌨️ Atalhos de teclado
+- **Entra ID Login** with MSAL (PKCE, Conditional Access, DPAPI-protected cache, WAM broker).
+- **CrowdStrike Console** with **Falcon Capability Probe** — automatically detects which modules are licensed on your tenant (Insight XDR, Identity Protection, Spotlight, Discover, Surface, LogScale, Forensics, Fusion, FDR, RTR Admin) and **gracefully degrades** the UI without crashing when something is missing.
+- **RTR at scale**: remote shell against 1 to N hosts, batch commands, scripts, get/put, kill/quarantine, host isolation.
+- **Remote forensics** via RTR: KAPE (Windows), UAC (Linux/macOS/ESXi), Velociraptor offline collector — direct exfil to S3/Azure Blob via presigned URL (no 4GB cap of `RTR get`).
+- **Memory acquisition**: native `xmemdump` + Magnet DumpIt / WinPmem fallback + post-collection analysis with SuperMem and MemProcFS.
+- **Futuristic attack graph** (Cytoscape.js via WebView2) wiring IOC → User → Process → Network → Lateral movement, MITRE ATT&CK-tagged.
+- **Self-Validation**: Health Check view runs 12+ automated checks and reports a clear `IRIS-*` error code for any failure.
+- **Reports** for incident, vulnerabilities and misconfigurations — exportable to PDF/DOCX/JSON (v0.3).
 
-| Atalho | Ação |
+## ⌨️ Keyboard shortcuts
+
+| Shortcut | Action |
 |---|---|
-| `Ctrl+1..6` | Dashboard, Incidentes, Console RTR, Forense, Memória, Árvore de Ataque |
-| `F1` ou `Ctrl+7` | Health Check (auto-validação) |
-| `Ctrl+8` | Configurações |
-| `Ctrl+L` | Sair / sign-out |
-| `F5` | Atualizar (re-probe Falcon) |
+| `Ctrl+1..6` | Dashboard, Incidents, RTR Console, Forensics, Memory, Attack Tree |
+| `F1` or `Ctrl+7` | Health Check (self-validation) |
+| `Ctrl+8` | Settings |
+| `Ctrl+L` | Sign out |
+| `F5` | Refresh (re-probe Falcon) |
 
-## Requisitos
-
-- Windows 10 22H2 / Windows 11
-- Microsoft Edge WebView2 Runtime (pré-instalado no Windows 11)
-- Conta Entra ID (cliente registrado — ver [docs/ENTRA_SETUP.md](docs/ENTRA_SETUP.md))
-- API key CrowdStrike Falcon com escopos mínimos (ver [docs/CROWDSTRIKE_SETUP.md](docs/CROWDSTRIKE_SETUP.md))
-
-> Você **não precisa** instalar .NET separadamente — o instalador embute o runtime.
-
-Funciona **sem licenças extras** do Falcon — recursos cuja licença não está presente aparecem desabilitados com tooltip explicativo, nunca quebram a aplicação.
-
-## Estrutura
+## 🏗️ Architecture
 
 ```
 CyberThrust.IRIS/
 ├── src/
-│   ├── CyberThrust.IRIS.App/           # WPF shell (UI dark futurista)
-│   ├── CyberThrust.IRIS.Core/          # Modelos, erros, abstrações
-│   ├── CyberThrust.IRIS.EntraID/       # MSAL + DPAPI token cache
-│   ├── CyberThrust.IRIS.CrowdStrike/   # OAuth2 + RTR + Capability Probe
-│   ├── CyberThrust.IRIS.Forensics/     # KAPE / Velociraptor / UAC
-│   ├── CyberThrust.IRIS.Memory/        # WinPmem / DumpIt / SuperMem
-│   ├── CyberThrust.IRIS.Graph/         # Builder de grafo de ataque
-│   └── CyberThrust.IRIS.Installer/     # MSIX manifest
-├── tests/
-├── tools/external/                     # binários KAPE, Velociraptor, etc. (não versionado)
-├── docs/                               # Architecture, Error Codes, Install, etc.
-└── .github/workflows/                  # CI build
+│   ├── CyberThrust.IRIS.App/          # WPF shell (dark-futuristic UI)
+│   ├── CyberThrust.IRIS.Core/         # Models, errors, abstractions
+│   ├── CyberThrust.IRIS.EntraID/      # MSAL + DPAPI token cache
+│   ├── CyberThrust.IRIS.CrowdStrike/  # OAuth2 + RTR + Capability Probe
+│   ├── CyberThrust.IRIS.Forensics/    # KAPE / Velociraptor / UAC
+│   ├── CyberThrust.IRIS.Memory/       # WinPmem / DumpIt / SuperMem
+│   ├── CyberThrust.IRIS.Graph/        # Attack graph builder
+│   └── CyberThrust.IRIS.Installer/    # MSIX + Inno Setup
+├── tests/                             # xUnit + FluentAssertions
+├── tools/external/                    # Optional binaries (KAPE, Velo, etc.)
+├── docs/                              # Architecture, ERROR_CODES, setup guides
+└── .github/                           # Issue/PR templates, dependabot, CI
 ```
 
-## Build rápido
+Full deep-dive: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+
+## 🛠️ Build from source
 
 ```powershell
-# Instale o SDK .NET 8 (única pré-condição)
+# Prereqs (once)
 winget install Microsoft.DotNet.SDK.8
+winget install Git.Git
 
-# Restaurar e compilar
+# Clone
+git clone https://github.com/fernandogssilva/cyber-thrust-iris.git
+cd cyber-thrust-iris
+
+# Build & run
 dotnet restore
 dotnet build -c Release
-
-# Rodar
 dotnet run --project src/CyberThrust.IRIS.App
 ```
 
-## Configuração
+## 🤝 Contributing
 
-1. Copie `src/CyberThrust.IRIS.App/appsettings.local.json.example` para `appsettings.local.json`.
-2. Preencha tenant Entra, ClientId, scopes, Falcon ClientId/Secret e cloud (us-1, us-2, eu-1, us-gov-1).
-3. Execute a aplicação — o **Login** valida Entra e o **Health Check** valida tudo o mais.
+**PRs welcome!** This is a community-driven security tool — bug fixes, modules, integrations, translations, docs. Read [CONTRIBUTING.md](docs/CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Open issues are labeled `good-first-issue` to help newcomers.
 
-## Documentação
+Roadmap and CTO review (gaps blocking enterprise-grade adoption): **[docs/CTO_REVIEW.md](docs/CTO_REVIEW.md)**.
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — arquitetura modular, fluxos de dados, decisões.
-- [docs/ERROR_CODES.md](docs/ERROR_CODES.md) — catálogo completo de códigos IRIS-xxxxx.
-- [docs/INSTALL.md](docs/INSTALL.md) — instalação e empacotamento MSIX.
-- [docs/ENTRA_SETUP.md](docs/ENTRA_SETUP.md) — registrar app no Entra ID.
-- [docs/CROWDSTRIKE_SETUP.md](docs/CROWDSTRIKE_SETUP.md) — gerar API key Falcon.
-- [docs/SECURITY.md](docs/SECURITY.md) — manuseio de evidência, LGPD/GDPR, custody chain.
-- [docs/CTO_REVIEW.md](docs/CTO_REVIEW.md) — review crítica do Diretor de TI + Cliente.
-- [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — padrões de código.
+## ⚖️ License
 
-## Status
+Released under the **[Apache License 2.0](LICENSE)** — free for commercial and non-commercial use, with patent grant.
 
-Build de uso interno **não comercial** — ver [LICENSE](LICENSE).
-Mantido por **CYBER THRUST**. Contato: fernandogssilva (GitHub).
+Third-party attributions in **[NOTICE](NOTICE)**.
+
+## ⚠️ Ethical use
+
+CyberThrust.IRIS performs active response (process termination, host isolation, memory/disk acquisition). **Use it only against systems for which you hold explicit written authorization.** Unauthorized use may violate Brazilian Lei 12.737/2012 (Lei Carolina Dieckmann), US CFAA, EU GDPR/NIS2 and equivalent laws.
+
+## 🔒 Security
+
+Found a vulnerability? **Do not open a public issue.** Use the [private security advisory channel](https://github.com/fernandogssilva/cyber-thrust-iris/security/advisories/new) or email `security@cyberthrust.com.br`. Disclosure policy in [docs/SECURITY.md](docs/SECURITY.md).
+
+## 📚 Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — modular design, data flows, ADRs
+- [Error Codes](docs/ERROR_CODES.md) — 90+ structured `IRIS-*` codes
+- [Install](docs/INSTALL.md) — installer + MSIX packaging
+- [Entra Setup](docs/ENTRA_SETUP.md) — register the app in Microsoft Entra ID
+- [CrowdStrike Setup](docs/CROWDSTRIKE_SETUP.md) — generate Falcon API key + put-files
+- [Trust Certificate](docs/TRUST_CERTIFICATE.md) — make Windows trust our binaries
+- [Authenticode Roadmap](docs/AUTHENTICODE_ROADMAP.md) — path from self-signed to EV/Store
+- [Security & LGPD/GDPR](docs/SECURITY.md) — custody chain, retention, PII handling
+- [Validation Report](docs/VALIDATION_REPORT.md) — capability matrix against a real Falcon tenant
+- [CTO Review](docs/CTO_REVIEW.md) — independent critique with v0.2/v0.3/v0.4 backlog
+- [Contributing](docs/CONTRIBUTING.md) — coding standards, branches, commit style
+
+## 💚 Acknowledgements
+
+Built on the shoulders of the open source DFIR community. Special thanks to the maintainers of **CrowdStrike Falcon-Toolkit**, **Velociraptor**, **KAPE**, **UAC** ([@tclahr](https://github.com/tclahr) — Brazilian, like us 🇧🇷), **WinPmem**, **SuperMem**, **MemProcFS**, **Volatility**, **MSAL.NET**, **CommunityToolkit.Mvvm**, **Cytoscape.js**, **Serilog**, **WPF-UI**, and the broader Microsoft .NET team.

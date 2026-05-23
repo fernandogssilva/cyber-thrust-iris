@@ -29,7 +29,7 @@
                 <TextBlock Text=".IRIS" FontSize="42" FontWeight="Bold" Foreground="#FF00E5FF" Margin="0,-8,0,0"/>
                 <TextBlock Text="Incident Response &amp; Investigation Suite" Foreground="#FF8C9BC9" FontSize="13" Margin="0,8,0,0"/>
                 <Border Background="#22FFD740" BorderBrush="#88FFD740" BorderThickness="1" CornerRadius="10" Padding="8,2" HorizontalAlignment="Left" Margin="0,12,0,0">
-                    <TextBlock Text="Internal Use / Non-Commercial Build  v0.1.0" Foreground="#FFFFD740" FontSize="11"/>
+                    <TextBlock Text="Open Source · Apache 2.0 · v0.2.0" Foreground="#FFFFD740" FontSize="11"/>
                 </Border>
             </StackPanel>
             <StackPanel Grid.Row="1">

@@ -1,0 +1,89 @@
+name: 🐛 Bug report
+description: Report a reproducible bug in CyberThrust.IRIS.
+title: "[Bug] "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report! Please fill out the form below.
+        ⚠️ **Do not include real PII, real Falcon AIDs, real customer hostnames, or sensitive forensic artifacts.**
+        For security vulnerabilities, see [SECURITY.md](https://github.com/fernandogssilva/cyber-thrust-iris/blob/main/docs/SECURITY.md) and use private reporting instead.
+
+  - type: input
+    id: version
+    attributes:
+      label: IRIS version
+      description: From the About screen or Splash. Example v0.2.0.
+      placeholder: v0.2.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: Install type
+      options:
+        - Setup.exe wizard
+        - Portable ZIP
+        - Built from source
+    validations:
+      required: true
+
+  - type: input
+    id: error-code
+    attributes:
+      label: IRIS-* error code (if any)
+      description: From the in-app error chip or logs. Example IRIS-CS-2012.
+      placeholder: IRIS-XXX-NNNN
+
+  - type: input
+    id: os
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 23H2 / Windows 10 22H2
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: 1, 2, 3…
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log excerpt
+      description: |
+        Logs live at `%LOCALAPPDATA%\CyberThrust\IRIS\logs\iris-YYYYMMDD.log`.
+        **Redact any AID, hostname, IP, UPN or hash that identifies a real environment.**
+      render: text
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have searched existing issues
+          required: true
+        - label: I have redacted real identifiers from logs/screenshots
+          required: true
+        - label: This is not a security vulnerability (those go through SECURITY.md)
+          required: true
