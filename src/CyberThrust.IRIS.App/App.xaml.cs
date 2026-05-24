@@ -126,14 +126,23 @@ public partial class App : Application
                                 sp.GetRequiredService<EntraOptions>(),
                                 sp.GetRequiredService<ILogger<EntraAuthenticator>>());
                         }
+                        catch (CyberThrust.IRIS.Core.Errors.IrisException ex)
+                        {
+                            // Erro esperado de configuração — NÃO é crash. Vai pro Serilog warning.
+                            Log.Warning("EntraAuthenticator não inicializado ({Code}): {Message}", ex.Error.CodeString, ex.Error.Message);
+                            return new NullAuthenticator(ex.Error.Message);
+                        }
                         catch (Exception ex)
                         {
-                            RawCrash("EntraAuthenticator ctor", ex);
+                            // Erro INESPERADO — vai pro crash.log para análise.
+                            RawCrash("EntraAuthenticator ctor (unexpected)", ex);
                             return new NullAuthenticator(ex.Message);
                         }
                     });
 
-                    services.AddSingleton<FalconAuthHandler>(sp => new FalconAuthHandler(sp.GetRequiredService<FalconOptions>()));
+                    // HttpClientFactory exige TRANSIENT para DelegatingHandlers (cada client recebe instância nova).
+                    // Cache de token OAuth2 fica isolado por client; trade-off aceitável até refator do v0.3 com FalconTokenProvider singleton.
+                    services.AddTransient<FalconAuthHandler>(sp => new FalconAuthHandler(sp.GetRequiredService<FalconOptions>()));
                     services.AddHttpClient<FalconCapabilityProbe>((sp, c) =>
                     {
                         var opt = sp.GetRequiredService<FalconOptions>();
@@ -186,6 +195,7 @@ public partial class App : Application
                 MainWindow = main;
                 main.Show();
                 Log.Information("MainWindow exibida.");
+                Log.Logger.Verbose("Flush forçado para garantir presença no log.");
             }
             catch (Exception ex)
             {

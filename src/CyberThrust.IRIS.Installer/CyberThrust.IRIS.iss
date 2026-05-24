@@ -4,7 +4,7 @@
 ; ===========================================================
 
 #define MyAppName      "CyberThrust.IRIS"
-#define MyAppVersion   "0.2.1"
+#define MyAppVersion   "0.2.2"
 #define MyAppPublisher "CYBER THRUST"
 #define MyAppURL       "https://github.com/fernandogssilva/cyber-thrust-iris"
 #define MyAppExeName   "CyberThrust.IRIS.exe"
@@ -76,16 +76,6 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
-[Code]
-function InitializeSetup(): Boolean;
-begin
-  Result := True;
-  MsgBox(
-    'CyberThrust.IRIS — Open Source DFIR Suite (Apache 2.0).' + #13#10#13#10 +
-    'IMPORTANTE: esta ferramenta executa Resposta a Incidente e Forense Remota.' + #13#10 +
-    'Use somente contra hosts para os quais você tem autorização escrita.' + #13#10#13#10 +
-    'Uso não autorizado pode violar a Lei 12.737/2012 (Lei Carolina Dieckmann),' + #13#10 +
-    'CFAA (EUA), GDPR (UE) e equivalentes.' + #13#10#13#10 +
-    'Continuar com a instalação?',
-    mbConfirmation, MB_YESNO);
-end;
+; Aviso ético de uso fica no LICENSE (Apache-2.0 ethical-use notice) e em
+; docs\INSTALL_PT.txt (mostrado pelo wizard via InfoBeforeFile).
+; Nenhum MsgBox interativo aqui — permite instalação 100% silenciosa via /VERYSILENT.

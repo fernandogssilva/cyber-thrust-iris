@@ -28,6 +28,7 @@ public static class SerilogBuilder
                 fileSizeLimitBytes: 50_000_000,
                 rollOnFileSizeLimit: true,
                 shared: true,
+                flushToDiskInterval: TimeSpan.FromMilliseconds(500),
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{ThreadId}] {Message:lj} {Properties:j}{NewLine}{Exception}")
             .CreateLogger();
     }

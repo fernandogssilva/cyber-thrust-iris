@@ -35,7 +35,9 @@ public partial class MainViewModel : ViewModelBase
         // Apenas abre tela de login. O SignInSilent é disparado depois,
         // protegido por try/catch no LoginViewModel — evita crashes nativos
         // do MSAL durante o bootstrap.
+        Serilog.Log.Information("MainViewModel.InitializeAsync → navigateTo(login)");
         _nav.NavigateTo("login");
+        StatusText = "Pronto. Faça login para começar.";
         await Task.CompletedTask;
     }
 
