@@ -200,9 +200,10 @@ public partial class App : Application
             {
                 var main = new MainWindow();
                 MainWindow = main;
+                main.SourceInitialized += (_, _) => DwmDarkTitleBar.Apply(main);
                 main.Show();
+                DwmDarkTitleBar.Apply(main); // garantia extra
                 Log.Information("MainWindow exibida.");
-                Log.Logger.Verbose("Flush forçado para garantir presença no log.");
             }
             catch (Exception ex)
             {

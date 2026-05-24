@@ -9,6 +9,9 @@
         Background="{DynamicResource Brush.Bg0}"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI Variable, Segoe UI">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+    </Window.Resources>
     <Window.InputBindings>
         <KeyBinding Modifiers="Ctrl" Key="D1" Command="{Binding NavCommand}" CommandParameter="dashboard"/>
         <KeyBinding Modifiers="Ctrl" Key="D2" Command="{Binding NavCommand}" CommandParameter="incidents"/>
@@ -52,7 +55,8 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock x:Name="UserBadge" Text="{Binding UserDisplay}" Style="{StaticResource Dim}" Margin="0,0,12,0"/>
-                    <Button Content="Sair" Style="{StaticResource BtnGhost}" Command="{Binding SignOutCommand}"/>
+                    <Button Content="Entrar" Style="{StaticResource BtnPrimary}" Command="{Binding SignInCommand}" Padding="12,4" FontSize="12"
+                            Visibility="{Binding ShowSignInButton, Converter={StaticResource BoolVis}}"/>
                 </StackPanel>
             </Grid>
         </Border>
