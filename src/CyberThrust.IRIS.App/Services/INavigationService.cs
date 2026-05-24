@@ -30,6 +30,7 @@ public sealed class NavigationService : INavigationService
             "home" or "welcome" => Resolve<Views.WelcomeView>(),
             "dashboard" => Resolve<Views.DashboardView>(),
             "incidents" => Resolve<Views.IncidentsView>(),
+            "alerts" or "detections" => Resolve<Views.AlertsView>(),
             "rtr" => Resolve<Views.RtrConsoleView>(),
             "forensics" => Resolve<Views.ForensicsView>(),
             "memory" => Resolve<Views.MemoryView>(),

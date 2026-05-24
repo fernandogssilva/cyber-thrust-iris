@@ -180,6 +180,7 @@ public partial class App : Application
                     services.AddTransient<HealthCheckViewModel>();
                     services.AddTransient<AttackTreeViewModel>();
                     services.AddTransient<IncidentsViewModel>();
+                    services.AddTransient<AlertsViewModel>();
                     services.AddTransient<RtrConsoleViewModel>();
                     services.AddTransient<ForensicsViewModel>();
                     services.AddTransient<MemoryViewModel>();

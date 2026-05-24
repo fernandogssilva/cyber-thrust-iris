@@ -8,6 +8,7 @@ public interface IFalconClient
     Task<Result<FalconCapability>> ProbeCapabilitiesAsync(CancellationToken ct = default);
     Task<Result<IReadOnlyList<FalconDetection>>> ListRecentDetectionsAsync(int limit = 100, CancellationToken ct = default);
     Task<Result<IReadOnlyList<FalconAlert>>> ListAlertsAsync(FalconAlertsFilter filter, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<FalconIncident>>> ListIncidentsAsync(TimeSpan? lookBack = null, int limit = 200, CancellationToken ct = default);
     Task<Result<IReadOnlyList<FalconHost>>> SearchHostsAsync(string filter, CancellationToken ct = default);
     Task<Result<bool>> ContainHostAsync(string aid, CancellationToken ct = default);
     Task<Result<bool>> LiftContainmentAsync(string aid, CancellationToken ct = default);

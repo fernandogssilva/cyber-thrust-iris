@@ -94,6 +94,27 @@ public sealed record AttackGraph(string IncidentId, IReadOnlyList<AttackNode> No
 // ─── Incident ─────────────────────────────────────────────────────────────
 public sealed record Incident(string Id, string Title, Severity Severity, string Status, DateTimeOffset CreatedUtc, IReadOnlyList<string> Aids, IReadOnlyList<string> DetectionIds, IReadOnlyList<string> Tactics, IReadOnlyList<string> Techniques);
 
+/// <summary>Incidente CrowdStrike agrupado (Incidents API v1) — junção de detecções relacionadas
+/// por contexto, atribuídas a um único analista, com fine_score e tactics consolidados.</summary>
+public sealed record FalconIncident(
+    string IncidentId,
+    string Name,
+    string Description,
+    Severity Severity,
+    int FineScore,          // 0..100 (Falcon scoring)
+    string Status,          // new / reopened / in_progress / closed
+    string AssignedToName,
+    int HostsCount,
+    int DetectionsCount,
+    IReadOnlyList<string> Hostnames,
+    IReadOnlyList<string> Tactics,
+    IReadOnlyList<string> Techniques,
+    IReadOnlyList<string> Objectives,
+    DateTimeOffset StartUtc,
+    DateTimeOffset EndUtc,
+    DateTimeOffset CreatedUtc,
+    DateTimeOffset ModifiedUtc);
+
 // ─── Health Check ─────────────────────────────────────────────────────────
 public enum HealthStatus { Pass, Warn, Fail, Skipped }
 public sealed record HealthResult(string Name, string Category, HealthStatus Status, string Message, IrisError? Error = null, TimeSpan? Duration = null, IReadOnlyDictionary<string, string>? Data = null);

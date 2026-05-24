@@ -15,6 +15,7 @@
     <Window.InputBindings>
         <KeyBinding Modifiers="Ctrl" Key="D1" Command="{Binding NavCommand}" CommandParameter="dashboard"/>
         <KeyBinding Modifiers="Ctrl" Key="D2" Command="{Binding NavCommand}" CommandParameter="incidents"/>
+        <KeyBinding Modifiers="Ctrl" Key="A" Command="{Binding NavCommand}" CommandParameter="alerts"/>
         <KeyBinding Modifiers="Ctrl" Key="D3" Command="{Binding NavCommand}" CommandParameter="rtr"/>
         <KeyBinding Modifiers="Ctrl" Key="D4" Command="{Binding NavCommand}" CommandParameter="forensics"/>
         <KeyBinding Modifiers="Ctrl" Key="D5" Command="{Binding NavCommand}" CommandParameter="memory"/>
@@ -68,9 +69,13 @@
                     <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBlock Text="Dashboard"/><TextBlock Grid.Column="1" Text="Ctrl+1" Style="{StaticResource Dim}"/></Grid>
                 </Button>
-                <Button ToolTip="Ctrl+2" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="incidents">
+                <Button ToolTip="Ctrl+2 — Incidentes (agrupamentos /incidents API)" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="incidents">
                     <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBlock Text="Incidentes"/><TextBlock Grid.Column="1" Text="Ctrl+2" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+A — Detecções (todos os alertas /alerts API: EDR + IDP + NG-SIEM + Mobile + Cloud + OverWatch)" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="alerts">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Detecções"/><TextBlock Grid.Column="1" Text="Ctrl+A" Style="{StaticResource Dim}"/></Grid>
                 </Button>
                 <Button ToolTip="Ctrl+3" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="rtr">
                     <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>

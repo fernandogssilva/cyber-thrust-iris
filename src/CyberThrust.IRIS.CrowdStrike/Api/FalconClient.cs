@@ -130,6 +130,75 @@ public sealed class FalconClient : IFalconClient
             return list.AsReadOnly();
         }, IrisErrorCode.CsApiServerError);
 
+    public Task<Result<IReadOnlyList<FalconIncident>>> ListIncidentsAsync(TimeSpan? lookBack = null, int limit = 200, CancellationToken ct = default)
+        => Result.Try<IReadOnlyList<FalconIncident>>(async () =>
+        {
+            var fql = "";
+            if (lookBack is { } lb)
+            {
+                var since = DateTimeOffset.UtcNow.Subtract(lb).ToString("yyyy-MM-ddTHH:mm:ssZ");
+                fql = "&filter=" + Uri.EscapeDataString($"created:>='{since}'");
+            }
+            using var ids = await _http.GetAsync($"/incidents/queries/incidents/v1?limit={limit}&sort=created:desc{fql}", ct).ConfigureAwait(false);
+            await EnsureSuccessAsync(ids, ct).ConfigureAwait(false);
+            using var idsDoc = JsonDocument.Parse(await ids.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+            var idArr = idsDoc.RootElement.GetProperty("resources").EnumerateArray().Select(e => e.GetString()!).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            if (idArr.Length == 0) return Array.Empty<FalconIncident>();
+
+            var list = new List<FalconIncident>();
+            for (int i = 0; i < idArr.Length; i += 100)
+            {
+                var batch = idArr.Skip(i).Take(100).ToArray();
+                var payload = JsonSerializer.Serialize(new { ids = batch });
+                using var content = new StringContent(payload, Encoding.UTF8, "application/json");
+                using var resp = await _http.PostAsync("/incidents/entities/incidents/GET/v1", content, ct).ConfigureAwait(false);
+                await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+                using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+                foreach (var d in doc.RootElement.GetProperty("resources").EnumerateArray())
+                {
+                    int fineScore = d.TryGetProperty("fine_score", out var fs) && fs.ValueKind == JsonValueKind.Number ? fs.GetInt32() : 0;
+                    var hostnames = new List<string>();
+                    if (d.TryGetProperty("hosts", out var hs) && hs.ValueKind == JsonValueKind.Array)
+                        foreach (var h in hs.EnumerateArray())
+                            if (h.TryGetProperty("hostname", out var hn)) hostnames.Add(hn.GetString() ?? "");
+                    var tactics = new List<string>();
+                    if (d.TryGetProperty("tactics", out var ta) && ta.ValueKind == JsonValueKind.Array)
+                        foreach (var t in ta.EnumerateArray()) tactics.Add(t.GetString() ?? "");
+                    var techniques = new List<string>();
+                    if (d.TryGetProperty("techniques", out var tq) && tq.ValueKind == JsonValueKind.Array)
+                        foreach (var t in tq.EnumerateArray()) techniques.Add(t.GetString() ?? "");
+                    var objectives = new List<string>();
+                    if (d.TryGetProperty("objectives", out var ob) && ob.ValueKind == JsonValueKind.Array)
+                        foreach (var o in ob.EnumerateArray()) objectives.Add(o.GetString() ?? "");
+
+                    var status = (d.TryGetProperty("status", out var st) && st.ValueKind == JsonValueKind.Number ? st.GetInt32() : 20) switch
+                    {
+                        20 => "new", 25 => "reopened", 30 => "in_progress", 40 => "closed", _ => "new"
+                    };
+
+                    list.Add(new FalconIncident(
+                        IncidentId: d.GetPropertyOrEmpty("incident_id"),
+                        Name: d.GetPropertyOrEmpty("name"),
+                        Description: d.GetPropertyOrEmpty("description"),
+                        Severity: MapSeverity(fineScore),
+                        FineScore: fineScore,
+                        Status: status,
+                        AssignedToName: d.GetPropertyOrEmpty("assigned_to_name"),
+                        HostsCount: d.TryGetProperty("host_ids", out var hi) && hi.ValueKind == JsonValueKind.Array ? hi.GetArrayLength() : 0,
+                        DetectionsCount: d.TryGetProperty("alert_ids", out var ai) && ai.ValueKind == JsonValueKind.Array ? ai.GetArrayLength() : 0,
+                        Hostnames: hostnames,
+                        Tactics: tactics,
+                        Techniques: techniques,
+                        Objectives: objectives,
+                        StartUtc: d.TryGetProperty("start", out var sd) && DateTimeOffset.TryParse(sd.GetString(), out var sdt) ? sdt : DateTimeOffset.UtcNow,
+                        EndUtc: d.TryGetProperty("end", out var ed) && DateTimeOffset.TryParse(ed.GetString(), out var edt) ? edt : DateTimeOffset.UtcNow,
+                        CreatedUtc: d.TryGetProperty("created", out var cd) && DateTimeOffset.TryParse(cd.GetString(), out var cdt) ? cdt : DateTimeOffset.UtcNow,
+                        ModifiedUtc: d.TryGetProperty("modified_timestamp", out var md) && DateTimeOffset.TryParse(md.GetString(), out var mdt) ? mdt : DateTimeOffset.UtcNow));
+                }
+            }
+            return list.AsReadOnly();
+        }, IrisErrorCode.CsApiServerError);
+
     public Task<Result<IReadOnlyList<FalconHost>>> SearchHostsAsync(string filter, CancellationToken ct = default)
         => Result.Try<IReadOnlyList<FalconHost>>(async () =>
         {
