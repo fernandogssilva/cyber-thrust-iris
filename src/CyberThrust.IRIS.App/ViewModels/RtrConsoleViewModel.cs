@@ -63,6 +63,10 @@ public partial class RtrConsoleViewModel : ViewModelBase
     [ObservableProperty] private bool   _isSearchingHost;
     [ObservableProperty] private string _hostSearchResult = string.Empty;
 
+    // ─── Device profile card (preenchido ao conectar) ─────────────────────────
+    [ObservableProperty] private DeviceProfile? _deviceProfile;
+    [ObservableProperty] private bool _hasDeviceProfile;
+
     // ─── Script catalog exposed to XAML ─────────────────────────────────────
     public IReadOnlyList<RtrScript> ScriptsRecon       { get; } = RtrScriptCatalog.Reconhecimento;
     public IReadOnlyList<RtrScript> ScriptsPersistencia { get; } = RtrScriptCatalog.Persistencia;
@@ -84,6 +88,11 @@ public partial class RtrConsoleViewModel : ViewModelBase
             AidInput        = ctx.Aid      ?? string.Empty;
             HostnameDisplay = ctx.Hostname ?? string.Empty;
             HostFilter      = ctx.Hostname ?? string.Empty;
+            IpFilter        = ctx.IpAddress  ?? string.Empty;
+            HashFilter      = ctx.Sha256     ?? ctx.Md5 ?? string.Empty;
+            UserFilter      = ctx.UserName   ?? string.Empty;
+            ProcessFilter   = ctx.ProcessName ?? string.Empty;
+            DomainFilter    = ctx.Domain     ?? string.Empty;
             CanConnect      = !string.IsNullOrWhiteSpace(AidInput);
 
             if (CanConnect)
@@ -91,6 +100,14 @@ public partial class RtrConsoleViewModel : ViewModelBase
                 Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Contexto de investigação carregado."));
                 Terminal.Add(RtrTerminalLine.Info($"       Host : {HostnameDisplay}"));
                 Terminal.Add(RtrTerminalLine.Info($"       AID  : {AidInput}"));
+                if (!string.IsNullOrWhiteSpace(ProcessFilter))
+                    Terminal.Add(RtrTerminalLine.Info($"       Proc : {ProcessFilter}"));
+                if (!string.IsNullOrWhiteSpace(HashFilter))
+                    Terminal.Add(RtrTerminalLine.Info($"       Hash : {Abbr(HashFilter, 24)}"));
+                if (!string.IsNullOrWhiteSpace(UserFilter))
+                    Terminal.Add(RtrTerminalLine.Info($"       User : {UserFilter}"));
+                if (!string.IsNullOrWhiteSpace(IpFilter))
+                    Terminal.Add(RtrTerminalLine.Info($"       IP   : {IpFilter}"));
                 Terminal.Add(RtrTerminalLine.Blank());
                 _ = ConnectCommand.ExecuteAsync(null);
             }
@@ -134,6 +151,22 @@ public partial class RtrConsoleViewModel : ViewModelBase
             Terminal.Add(RtrTerminalLine.Info($"       SessionID : {Abbr(_session.SessionId, 16)}…"));
             Terminal.Add(RtrTerminalLine.Info($"       Expira em : {_session.ExpiresUtc.ToLocalTime():HH:mm:ss}"));
             Terminal.Add(RtrTerminalLine.Blank());
+
+            // Fetch device profile em background — alimenta o sidebar card
+            _ = FetchDeviceProfileAsync(aid);
+
+            // Auto-executa script preferido (ex: process-tree quando vindo de "Investigar processo")
+            if (!string.IsNullOrWhiteSpace(_ctx.PreferredRtrScriptId))
+            {
+                var preferred = RtrScriptCatalog.FindById(_ctx.PreferredRtrScriptId);
+                _ctx.PreferredRtrScriptId = null; // one-shot
+                if (preferred is not null)
+                {
+                    Terminal.Add(RtrTerminalLine.Info($"[{Ts}] 🎯 Auto-executando script da investigação: {preferred.Name}"));
+                    Terminal.Add(RtrTerminalLine.Blank());
+                    _ = RunScriptCommand.ExecuteAsync(preferred);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -148,9 +181,29 @@ public partial class RtrConsoleViewModel : ViewModelBase
     private void Disconnect()
     {
         _session = null; IsConnected = false;
+        DeviceProfile = null; HasDeviceProfile = false;
         StatusLine = "Sessão encerrada.";
         Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Sessão RTR encerrada."));
         Terminal.Add(RtrTerminalLine.Blank());
+    }
+
+    private async Task FetchDeviceProfileAsync(string aid)
+    {
+        try
+        {
+            var r = await _falcon.GetDeviceProfileAsync(aid).ConfigureAwait(true);
+            if (r.IsSuccess)
+            {
+                DeviceProfile    = r.Value;
+                HasDeviceProfile = DeviceProfile is not null;
+                if (HasDeviceProfile)
+                    Terminal.Add(RtrTerminalLine.Info($"[{Ts}] ℹ  Device: {DeviceProfile!.Platform} {DeviceProfile.OsVersion} · {DeviceProfile.LocalIp} · agent {DeviceProfile.AgentVersion} · last_seen {DeviceProfile.LastSeenUtc.ToLocalTime():HH:mm:ss}"));
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "FetchDeviceProfile falhou para {Aid}", aid);
+        }
     }
 
     // ─── Command execution ────────────────────────────────────────────────────

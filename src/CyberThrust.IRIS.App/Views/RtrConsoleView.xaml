@@ -252,6 +252,29 @@
 
                         <Separator Margin="0,12,0,2" Background="{DynamicResource Brush.Stroke}"/>
 
+                        <!-- ── Device Profile card (visível ao conectar) ── -->
+                        <StackPanel Visibility="{Binding HasDeviceProfile, Converter={StaticResource BoolVis}}">
+                            <TextBlock Style="{StaticResource SideHead}"
+                                       Foreground="{DynamicResource Brush.Success}">
+                                🖥  HOST ENRIQUECIDO
+                            </TextBlock>
+                            <Border Background="#10000000" CornerRadius="6" Padding="8,6" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding DeviceProfile.Hostname}" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource Brush.Text}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                        <TextBlock Text="{Binding DeviceProfile.Platform}"  FontSize="10" Foreground="{DynamicResource Brush.Accent}"/>
+                                        <TextBlock Text="  ·  " FontSize="10" Foreground="{DynamicResource Brush.TextDim}"/>
+                                        <TextBlock Text="{Binding DeviceProfile.OsVersion}" FontSize="10" Foreground="{DynamicResource Brush.TextDim}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding DeviceProfile.LocalIp,    StringFormat='IP local: {0}'}"   FontFamily="Consolas" FontSize="9.5" Foreground="{DynamicResource Brush.TextDim}" Margin="0,3,0,0"/>
+                                    <TextBlock Text="{Binding DeviceProfile.ExternalIp, StringFormat='IP externo: {0}'}" FontFamily="Consolas" FontSize="9.5" Foreground="{DynamicResource Brush.TextDim}"/>
+                                    <TextBlock Text="{Binding DeviceProfile.MachineDomain, StringFormat='AD: {0}'}"      FontSize="9.5" Foreground="{DynamicResource Brush.TextDim}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding DeviceProfile.AgentVersion,  StringFormat='Agent v{0}'}"  FontFamily="Consolas" FontSize="9.5" Foreground="{DynamicResource Brush.TextDim}" Margin="0,3,0,0"/>
+                                    <TextBlock Text="{Binding DeviceProfile.Status, StringFormat='Status: {0}'}"          FontSize="9.5" Foreground="{DynamicResource Brush.Warn}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
                         <!-- Script catalog header -->
                         <TextBlock Style="{StaticResource SideHead}"
                                    Foreground="{DynamicResource Brush.Accent}">

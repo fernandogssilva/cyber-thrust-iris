@@ -5,6 +5,31 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] — 2026-05-24
+
+### Added
+- **Menu de contexto (botão direito) em Detecções** — ações cross-módulo direto na grade, sem precisar abrir o painel lateral:
+  - Investigar no Console RTR · Investigar processo (RTR) · Conexões de rede (RTR) · Histórico de logon (RTR)
+  - Coleta com Velociraptor · Forense (disco) · Capturar Memória
+  - Reputação (VT/AbuseIPDB) · Conter / Levantar contenção
+  - Copiar AID / Composite ID / Hostname
+  - Escalar para Incidente · Marcar Verdadeiro+/Falso+
+- **Painel de investigação enriquecido** — ao clicar em qualquer detecção o painel agora chama Falcon API em paralelo e exibe:
+  - **IOCs / Telemetria** — chips clicáveis (copiam para clipboard) com SHA256, MD5, caminho, processo, cmdline, parent process, IP local/externo, domínio, URL. Extraídos automaticamente do alerta.
+  - **Perfil do Dispositivo** — OS, versão, IP local/externo, domínio AD, OU, hardware (manufacturer/model), agente Falcon, status de contenção, primeira/última conexão.
+  - **Alertas correlacionados no mesmo host (24 h)** — lista compacta com severidade, técnica MITRE e timestamp.
+- **Auto-enriquecimento via `GetDeviceProfileAsync`** — novo método em `IFalconClient` chama `/devices/entities/devices/v2` retornando 16 campos do device.
+- **`FalconAlertsFilter.Aid`** — novo parâmetro que filtra a query Alerts API v2 por `agent_id`, usado para correlação no mesmo host.
+- **Extração automática de IOCs** — `FalconClient.ListAlertsAsync` agora popula `FalconAlert.Extra` com 17 campos (hashes, IPs, processos, cmdlines, parent process, domínio, URL, user principal, falcon_host_link).
+- **`AlertInvestigationContext` enriquecido** — agora carrega IpAddress, Sha256, Md5, FilePath, ProcessName, CommandLine, UserName, Domain e `PreferredRtrScriptId` para comunicação entre todos os módulos.
+- **Console RTR com auto-fill de filtros** — ao navegar de uma detecção, os campos Hostname/IP/Hash/Usuário/Processo/Domínio são pré-preenchidos com os IOCs extraídos.
+- **Console RTR com Host Card enriquecido** — ao conectar, o sidebar exibe automaticamente um card com OS, IPs, domínio AD, versão do agente e status de contenção. Chamada paralela a `GetDeviceProfileAsync`.
+- **Auto-execução de script preferido** — clicar "Investigar processo (RTR)" no menu de contexto abre o RTR, conecta e executa automaticamente o script `process-tree` parametrizado com o nome do processo do alerta. Mesma mecânica para `connections` e `logon-history`.
+
+### Changed
+- `AlertInvestigationContext.SetFromAlert` agora extrai IOCs do dict `Extra` do alerta.
+- `RtrConsoleViewModel.Connect` agora dispara `FetchDeviceProfileAsync` em paralelo após sessão estabelecida.
+
 ## [0.4.5] — 2026-05-24
 
 ### Added

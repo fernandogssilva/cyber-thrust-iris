@@ -44,7 +44,39 @@ public sealed record FalconAlertsFilter(
     Severity[]? MinSeverities = null,    // só severidades >= a alguma da lista
     string[]? Statuses = null,           // new, in_progress, true_positive, false_positive
     TimeSpan? LookBack = null,           // ex: 24h, 7d
+    string? Aid = null,                  // device_id — filtra alertas do mesmo endpoint
     int Limit = 200);
+
+// ─── Investigation enrichment ─────────────────────────────────────────────
+/// <summary>Perfil enriquecido do dispositivo a partir de /devices/entities/devices/v2.</summary>
+public sealed record DeviceProfile(
+    string Aid,
+    string Hostname,
+    string Platform,
+    string OsVersion,
+    string LocalIp,
+    string ExternalIp,
+    string Status,           // normal | containment_pending | contained | lift_containment_pending
+    DateTimeOffset LastSeenUtc,
+    DateTimeOffset FirstSeenUtc,
+    string MachineDomain,
+    string OuPath,
+    string SiteName,
+    string SystemManufacturer,
+    string SystemProductName,
+    string AgentVersion,
+    string KernelVersion,
+    IReadOnlyList<string> Tags);
+
+/// <summary>Alerta resumido para listagem de "alertas relacionados no mesmo host".</summary>
+public sealed record RelatedAlert(
+    string CompositeId,
+    string Name,
+    Severity Severity,
+    string Status,
+    string Tactic,
+    string Technique,
+    DateTimeOffset CreatedUtc);
 
 // ─── RTR ─────────────────────────────────────────────────────────────
 public sealed record RtrSessionInfo(string SessionId, string Aid, DateTimeOffset CreatedUtc, DateTimeOffset ExpiresUtc);

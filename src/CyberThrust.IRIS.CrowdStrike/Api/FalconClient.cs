@@ -88,6 +88,8 @@ public sealed class FalconClient : IFalconClient
                 var since = DateTimeOffset.UtcNow.Subtract(lb).ToString("yyyy-MM-ddTHH:mm:ssZ");
                 clauses.Add($"created_timestamp:>='{since}'");
             }
+            if (!string.IsNullOrWhiteSpace(filter.Aid))
+                clauses.Add($"agent_id:'{filter.Aid}'");
             var fql = clauses.Count == 0 ? "" : "&filter=" + Uri.EscapeDataString(string.Join("+", clauses));
 
             using var ids = await _http.GetAsync($"/alerts/queries/alerts/v2?limit={filter.Limit}&sort=created_timestamp.desc{fql}", ct).ConfigureAwait(false);
@@ -113,6 +115,43 @@ public sealed class FalconClient : IFalconClient
                     var techName = d.GetPropertyOrEmpty("name");
                     var finalName = !string.IsNullOrWhiteSpace(displayName) ? displayName : techName;
 
+                    // Enriquecimento — extrai IOCs e contexto do alerta para Extra dict
+                    var extra = new Dictionary<string, string>();
+                    void TryAdd(string key, string srcKey)
+                    {
+                        var v = d.GetPropertyOrEmpty(srcKey);
+                        if (!string.IsNullOrWhiteSpace(v)) extra[key] = v;
+                    }
+                    TryAdd("sha256",          "sha256");
+                    TryAdd("md5",             "md5");
+                    TryAdd("sha1",            "sha1");
+                    TryAdd("filepath",        "filepath");
+                    TryAdd("filename",        "filename");
+                    TryAdd("cmdline",         "cmdline");
+                    TryAdd("commandline",     "commandline");
+                    TryAdd("process_id",      "process_id");
+                    TryAdd("parent_image",    "parent_image_file_name");
+                    TryAdd("parent_cmdline",  "parent_command_line");
+                    TryAdd("ip_address",      "ip_address");
+                    TryAdd("local_ip",        "local_ip");
+                    TryAdd("external_ip",     "external_ip");
+                    TryAdd("domain",          "domain");
+                    TryAdd("url",             "url");
+                    TryAdd("falcon_host_link","falcon_host_link");
+                    TryAdd("logon_domain",    "logon_domain");
+                    TryAdd("user_id",         "user_id");
+                    TryAdd("user_principal",  "user_principal");
+                    TryAdd("device_os",       "device_os");
+                    TryAdd("device_country",  "device_country");
+                    // parent_details é um objeto aninhado em alguns produtos
+                    if (d.TryGetProperty("parent_details", out var pd) && pd.ValueKind == JsonValueKind.Object)
+                    {
+                        var pdName = pd.GetPropertyOrEmpty("filename");
+                        var pdCmd  = pd.GetPropertyOrEmpty("cmdline");
+                        if (!string.IsNullOrWhiteSpace(pdName)) extra["parent_image"]   = pdName;
+                        if (!string.IsNullOrWhiteSpace(pdCmd))  extra["parent_cmdline"] = pdCmd;
+                    }
+
                     list.Add(new FalconAlert(
                         CompositeId: d.GetPropertyOrEmpty("composite_id"),
                         Product: d.GetPropertyOrEmpty("product"),
@@ -135,7 +174,7 @@ public sealed class FalconClient : IFalconClient
                             : d.TryGetProperty("crawled_timestamp", out var crt) && DateTimeOffset.TryParse(crt.GetString(), out var crDt)
                                 ? crDt
                                 : DateTimeOffset.UtcNow,
-                        Extra: new Dictionary<string, string>()));
+                        Extra: extra));
                 }
             }
             return list.AsReadOnly();
@@ -237,6 +276,39 @@ public sealed class FalconClient : IFalconClient
                     Tags: h.TryGetProperty("tags", out var t) && t.ValueKind == JsonValueKind.Array ? t.EnumerateArray().Select(x => x.GetString() ?? "").ToArray() : Array.Empty<string>()));
             }
             return list.AsReadOnly();
+        }, IrisErrorCode.CsApiServerError);
+
+    public Task<Result<DeviceProfile>> GetDeviceProfileAsync(string aid, CancellationToken ct = default)
+        => Result.Try<DeviceProfile>(async () =>
+        {
+            using var resp = await _http.GetAsync($"/devices/entities/devices/v2?ids={Uri.EscapeDataString(aid)}", ct).ConfigureAwait(false);
+            await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+            using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+            var arr = doc.RootElement.GetProperty("resources").EnumerateArray();
+            if (!arr.Any()) return new DeviceProfile(aid, "—", "—", "—", "—", "—", "unknown",
+                DateTimeOffset.MinValue, DateTimeOffset.MinValue, "—", "—", "—", "—", "—", "—", "—",
+                Array.Empty<string>());
+            var h = arr.First();
+            return new DeviceProfile(
+                Aid:               h.GetPropertyOrEmpty("device_id"),
+                Hostname:          h.GetPropertyOrEmpty("hostname"),
+                Platform:          h.GetPropertyOrEmpty("platform_name"),
+                OsVersion:         h.GetPropertyOrEmpty("os_version"),
+                LocalIp:           h.GetPropertyOrEmpty("local_ip"),
+                ExternalIp:        h.GetPropertyOrEmpty("external_ip"),
+                Status:            h.GetPropertyOrEmpty("status"),
+                LastSeenUtc:       h.TryGetProperty("last_seen",  out var ls) && DateTimeOffset.TryParse(ls.GetString(), out var lsDto) ? lsDto : DateTimeOffset.MinValue,
+                FirstSeenUtc:      h.TryGetProperty("first_seen", out var fs) && DateTimeOffset.TryParse(fs.GetString(), out var fsDto) ? fsDto : DateTimeOffset.MinValue,
+                MachineDomain:     h.GetPropertyOrEmpty("machine_domain"),
+                OuPath:            h.GetPropertyOrEmpty("ou"),
+                SiteName:          h.GetPropertyOrEmpty("site_name"),
+                SystemManufacturer:h.GetPropertyOrEmpty("system_manufacturer"),
+                SystemProductName: h.GetPropertyOrEmpty("system_product_name"),
+                AgentVersion:      h.GetPropertyOrEmpty("agent_version"),
+                KernelVersion:     h.GetPropertyOrEmpty("kernel_version"),
+                Tags:              h.TryGetProperty("tags", out var t) && t.ValueKind == JsonValueKind.Array
+                                       ? t.EnumerateArray().Select(x => x.GetString() ?? "").Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
+                                       : Array.Empty<string>());
         }, IrisErrorCode.CsApiServerError);
 
     public Task<Result<bool>> ContainHostAsync(string aid, CancellationToken ct = default)

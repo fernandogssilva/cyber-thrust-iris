@@ -10,6 +10,8 @@ public interface IFalconClient
     Task<Result<IReadOnlyList<FalconAlert>>> ListAlertsAsync(FalconAlertsFilter filter, CancellationToken ct = default);
     Task<Result<IReadOnlyList<FalconIncident>>> ListIncidentsAsync(TimeSpan? lookBack = null, int limit = 200, CancellationToken ct = default);
     Task<Result<IReadOnlyList<FalconHost>>> SearchHostsAsync(string filter, CancellationToken ct = default);
+    /// <summary>Perfil completo do device via /devices/entities/devices/v2?ids={aid}. Retorna OS, IPs, agente, manufacturer, last_seen, containment status, OU, tags etc.</summary>
+    Task<Result<DeviceProfile>> GetDeviceProfileAsync(string aid, CancellationToken ct = default);
     Task<Result<bool>> ContainHostAsync(string aid, CancellationToken ct = default);
     Task<Result<bool>> LiftContainmentAsync(string aid, CancellationToken ct = default);
     /// <summary>Atualiza o status de um alerta (new | in_progress | true_positive | false_positive | ignored | closed).</summary>

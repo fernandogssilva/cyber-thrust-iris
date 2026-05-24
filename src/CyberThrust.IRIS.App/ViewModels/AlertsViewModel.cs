@@ -54,6 +54,16 @@ public partial class AlertsViewModel : ViewModelBase
     [ObservableProperty] private bool   _actionIsSuccess;
     [ObservableProperty] private Brush  _actionMessageColor = Brushes.Transparent;
 
+    // ─── Investigação enriquecida ────────────────────────────────────────────
+    [ObservableProperty] private DeviceProfile? _deviceProfile;
+    [ObservableProperty] private bool _isEnriching;
+    [ObservableProperty] private string _enrichmentStatus = string.Empty;
+    public ObservableCollection<RelatedAlert> RelatedAlerts { get; } = new();
+    public ObservableCollection<IocChip>      Iocs          { get; } = new();
+    [ObservableProperty] private bool _hasDeviceProfile;
+    [ObservableProperty] private bool _hasRelatedAlerts;
+    [ObservableProperty] private bool _hasIocs;
+
     public AlertsViewModel(IFalconClient falcon, INavigationService nav, AppConfigStore cfg, AlertInvestigationContext context)
     {
         _falcon  = falcon;
@@ -71,6 +81,89 @@ public partial class AlertsViewModel : ViewModelBase
         ActionMessage         = string.Empty;
         ActionIsSuccess       = false;
         ActionMessageColor    = Brushes.Transparent;
+
+        DeviceProfile      = null;
+        HasDeviceProfile   = false;
+        RelatedAlerts.Clear(); HasRelatedAlerts = false;
+        Iocs.Clear();          HasIocs          = false;
+
+        if (value is not null)
+            _ = EnrichAsync(value);
+    }
+
+    // ─── Enrichment automático — device + alertas relacionados + IOCs ────────
+    private async Task EnrichAsync(AlertRowVm row)
+    {
+        // 1. IOCs do dict Extra (extraídos pelo FalconClient.ListAlertsAsync)
+        BuildIocChips(row.Alert);
+
+        var aid = row.Alert.Aid;
+        if (string.IsNullOrWhiteSpace(aid)) return; // IDP/NG-SIEM podem não ter AID
+
+        IsEnriching      = true;
+        EnrichmentStatus = "Enriquecendo: device profile + alertas correlacionados…";
+
+        try
+        {
+            // Em paralelo: device profile + related alerts (24h, mesmo AID)
+            var deviceTask = _falcon.GetDeviceProfileAsync(aid);
+            var relatedTask = _falcon.ListAlertsAsync(new FalconAlertsFilter(
+                LookBack: TimeSpan.FromHours(24),
+                Aid: aid,
+                Limit: 50));
+
+            await Task.WhenAll(deviceTask, relatedTask).ConfigureAwait(true);
+
+            if (deviceTask.Result.IsSuccess)
+            {
+                DeviceProfile    = deviceTask.Result.Value;
+                HasDeviceProfile = DeviceProfile is not null;
+            }
+            if (relatedTask.Result.IsSuccess)
+            {
+                foreach (var a in relatedTask.Result.Value!.Where(x => x.CompositeId != row.Alert.CompositeId).Take(20))
+                {
+                    RelatedAlerts.Add(new RelatedAlert(
+                        a.CompositeId, a.Name, a.Severity, a.Status,
+                        a.Tactic, a.Technique, a.CreatedUtc));
+                }
+                HasRelatedAlerts = RelatedAlerts.Count > 0;
+            }
+            EnrichmentStatus = $"✓ {(HasDeviceProfile ? "device" : "device falhou")} · {RelatedAlerts.Count} correlacionados · {Iocs.Count} IOCs";
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Enrichment falhou para AID {Aid}", aid);
+            EnrichmentStatus = "Falha no enriquecimento (logs).";
+        }
+        finally
+        {
+            IsEnriching = false;
+        }
+    }
+
+    private void BuildIocChips(FalconAlert alert)
+    {
+        Iocs.Clear();
+        if (alert.Extra is null) { HasIocs = false; return; }
+        void Add(string key, string label, string icon, string copyValue)
+        {
+            if (alert.Extra.TryGetValue(key, out var v) && !string.IsNullOrWhiteSpace(v))
+                Iocs.Add(new IocChip(label, icon, v, copyValue));
+        }
+        Add("sha256",         "SHA256",          "🔐", alert.Extra["sha256"]);
+        Add("md5",            "MD5",             "🔐", alert.Extra.TryGetValue("md5",  out var m)  ? m  : "");
+        Add("filepath",       "Caminho",         "📁", alert.Extra.TryGetValue("filepath", out var fp) ? fp : "");
+        Add("filename",       "Processo",        "⚙",  alert.Extra.TryGetValue("filename", out var fn) ? fn : "");
+        Add("cmdline",        "Cmdline",         "💻", alert.Extra.TryGetValue("cmdline",  out var cl) ? cl : "");
+        Add("parent_image",   "Parent",          "⬆",  alert.Extra.TryGetValue("parent_image", out var pi) ? pi : "");
+        Add("parent_cmdline", "Parent cmd",      "⬆",  alert.Extra.TryGetValue("parent_cmdline", out var pc) ? pc : "");
+        Add("local_ip",       "IP local",        "🌐", alert.Extra.TryGetValue("local_ip", out var li) ? li : "");
+        Add("external_ip",    "IP externo",      "🌍", alert.Extra.TryGetValue("external_ip", out var ei) ? ei : "");
+        Add("ip_address",     "IP",              "🌐", alert.Extra.TryGetValue("ip_address", out var ia) ? ia : "");
+        Add("domain",         "Domínio",         "🌐", alert.Extra.TryGetValue("domain", out var dm) ? dm : "");
+        Add("url",            "URL",             "🔗", alert.Extra.TryGetValue("url", out var url) ? url : "");
+        HasIocs = Iocs.Count > 0;
     }
 
     partial void OnSearchTextChanged(string value) => AlertsView.Refresh();
@@ -201,6 +294,56 @@ public partial class AlertsViewModel : ViewModelBase
         _context.SetFromAlert(SelectedAlertRow.Alert);
         _nav.NavigateTo("rtr");
     }
+
+    // ─── Context menu (right-click) — atalhos cross-módulo ────────────────────
+    [RelayCommand]
+    private void RtrInvestigateProcess(AlertRowVm? row)
+    {
+        row ??= SelectedAlertRow;
+        if (row is null) return;
+        _context.SetFromAlert(row.Alert);
+        _context.PreferredRtrScriptId = "process-tree";   // script já parametrizado por {PROCESS}
+        _nav.NavigateTo("rtr");
+    }
+
+    [RelayCommand]
+    private void RtrInvestigateUser(AlertRowVm? row)
+    {
+        row ??= SelectedAlertRow;
+        if (row is null) return;
+        _context.SetFromAlert(row.Alert);
+        _context.PreferredRtrScriptId = "logon-history";
+        _nav.NavigateTo("rtr");
+    }
+
+    [RelayCommand]
+    private void RtrInvestigateConnections(AlertRowVm? row)
+    {
+        row ??= SelectedAlertRow;
+        if (row is null) return;
+        _context.SetFromAlert(row.Alert);
+        _context.PreferredRtrScriptId = "connections";
+        _nav.NavigateTo("rtr");
+    }
+
+    [RelayCommand]
+    private void OpenReputation(AlertRowVm? row)
+    {
+        row ??= SelectedAlertRow;
+        if (row is null) return;
+        _context.SetFromAlert(row.Alert);
+        _nav.NavigateTo("reputation");
+    }
+
+    [RelayCommand]
+    private void CopyToClipboard(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        try { System.Windows.Clipboard.SetText(value); SetActionResult(true, $"📋  Copiado: {Truncate(value, 40)}"); }
+        catch (Exception ex) { Log.Warning(ex, "Clipboard set falhou"); }
+    }
+
+    private static string Truncate(string s, int max) => s.Length > max ? s[..max] + "…" : s;
 
     [RelayCommand]
     private void RunVelociraptor()
@@ -373,3 +516,10 @@ public sealed class AlertRowVm
 
     public static AlertRowVm From(FalconAlert a) => new(a);
 }
+
+/// <summary>IOC chip exibido no painel de investigação. Clicável para copiar.</summary>
+public sealed record IocChip(string Label, string Icon, string Value, string CopyValue)
+{
+    public string Display => Value.Length > 38 ? Value[..38] + "…" : Value;
+}
+
