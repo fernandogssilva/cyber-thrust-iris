@@ -244,6 +244,23 @@ public sealed class FalconClient : IFalconClient
     public Task<Result<bool>> LiftContainmentAsync(string aid, CancellationToken ct = default)
         => DeviceActionAsync(aid, "lift_containment", ct);
 
+    public Task<Result<bool>> UpdateAlertStatusAsync(string compositeId, string status, CancellationToken ct = default)
+        => Result.Try<bool>(async () =>
+        {
+            // PATCH /alerts/entities/alerts/v2 — atualiza status do alerta via Alerts API v2.
+            // Valores válidos: new | in_progress | true_positive | false_positive | ignored | closed
+            var payload = JsonSerializer.Serialize(new
+            {
+                action_parameters = new[] { new { name = "update_status", value = status } },
+                composite_ids = new[] { compositeId }
+            });
+            using var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            var req = new HttpRequestMessage(HttpMethod.Patch, "/alerts/entities/alerts/v2") { Content = content };
+            using var resp = await _http.SendAsync(req, ct).ConfigureAwait(false);
+            await EnsureSuccessAsync(resp, ct, IrisErrorCode.CsApiServerError).ConfigureAwait(false);
+            return true;
+        }, IrisErrorCode.CsApiServerError);
+
     private Task<Result<bool>> DeviceActionAsync(string aid, string action, CancellationToken ct)
         => Result.Try<bool>(async () =>
         {

@@ -4,6 +4,27 @@
              Background="{DynamicResource Brush.Bg0}">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolVis"/>
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextDim}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,10,0,4"/>
+        </Style>
+        <Style x:Key="FieldValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="ActionBtn" TargetType="Button" BasedOn="{StaticResource BtnGhost}">
+            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style x:Key="StatusBtn" TargetType="Button" BasedOn="{StaticResource BtnGhost}">
+            <Setter Property="Margin" Value="0,0,4,4"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
     </UserControl.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -35,7 +56,7 @@
             </DockPanel>
         </Border>
 
-        <!-- Filter row (chips estilo NG-SIEM) -->
+        <!-- Filtros -->
         <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,12" Padding="12">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -45,117 +66,245 @@
                     <ColumnDefinition Width="150"/>
                     <ColumnDefinition Width="150"/>
                 </Grid.ColumnDefinitions>
-
                 <Grid Grid.Column="0" Margin="0,0,8,0">
                     <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="10,8" FontFamily="Segoe UI"/>
-                    <TextBlock Text="🔍  Buscar detecções (hostname, usuário, técnica, nome…)" Foreground="{DynamicResource Brush.TextDim}" IsHitTestVisible="False" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock Text="🔍  Buscar (hostname, usuário, técnica, nome…)" Foreground="{DynamicResource Brush.TextDim}" IsHitTestVisible="False" VerticalAlignment="Center" Margin="12,0,0,0">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SearchText}" Value="">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding SearchText}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
                 </Grid>
-
                 <ComboBox Grid.Column="1" ItemsSource="{Binding SeverityOptions}" SelectedItem="{Binding SelectedSeverity}" Margin="4,0"/>
-                <ComboBox Grid.Column="2" ItemsSource="{Binding TimeOptions}" SelectedItem="{Binding SelectedTime}" Margin="4,0"/>
-                <ComboBox Grid.Column="3" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" Margin="4,0"/>
-                <ComboBox Grid.Column="4" ItemsSource="{Binding ProductOptions}" SelectedItem="{Binding SelectedProduct}" Margin="4,0,0,0"/>
+                <ComboBox Grid.Column="2" ItemsSource="{Binding TimeOptions}"     SelectedItem="{Binding SelectedTime}"     Margin="4,0"/>
+                <ComboBox Grid.Column="3" ItemsSource="{Binding StatusOptions}"   SelectedItem="{Binding SelectedStatus}"   Margin="4,0"/>
+                <ComboBox Grid.Column="4" ItemsSource="{Binding ProductOptions}"  SelectedItem="{Binding SelectedProduct}"  Margin="4,0,0,0"/>
             </Grid>
         </Border>
 
-        <!-- DataGrid estilo NG-SIEM -->
-        <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0">
-            <Grid>
-                <DataGrid ItemsSource="{Binding AlertsView}" AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          IsReadOnly="True" GridLinesVisibility="None"
-                          HeadersVisibility="Column" SelectionMode="Extended"
-                          Background="Transparent" RowBackground="Transparent"
-                          AlternatingRowBackground="#06FFFFFF"
-                          BorderThickness="0" FontSize="12">
-                    <DataGrid.GroupStyle>
-                        <GroupStyle>
-                            <GroupStyle.HeaderTemplate>
-                                <DataTemplate>
-                                    <Border Background="{DynamicResource Brush.Bg3}" Padding="8,4" Margin="0,8,0,0">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" Foreground="{DynamicResource Brush.Accent}" FontWeight="SemiBold" FontSize="12"/>
-                                            <TextBlock Text=" · " Foreground="{DynamicResource Brush.TextDim}" Margin="6,0"/>
-                                            <TextBlock Text="{Binding ItemCount, StringFormat='{}{0} detecções'}" Foreground="{DynamicResource Brush.TextDim}" FontSize="11"/>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </GroupStyle.HeaderTemplate>
-                        </GroupStyle>
-                    </DataGrid.GroupStyle>
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="" Width="40">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="Severity" Width="100">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="{Binding SeverityBrush}" CornerRadius="3" Padding="6,1" HorizontalAlignment="Left">
-                                        <TextBlock Text="{Binding SeverityLabel}" Foreground="Black" FontWeight="Bold" FontSize="10"/>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Detect time" Binding="{Binding DetectTime}" Width="90">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="FontFamily" Value="Consolas"/><Setter Property="Foreground" Value="{DynamicResource Brush.TextDim}"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Detection name" Binding="{Binding DetectionName}" Width="*">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="100">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brush.Accent2}"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Account name" Binding="{Binding AccountName}" Width="170">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Source endpoint" Binding="{Binding SourceEndpoint}" Width="170">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Tactic · Technique" Binding="{Binding TacticTechnique}" Width="200">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Accent}"/><Setter Property="FontSize" Value="11"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Assigned to" Binding="{Binding AssignedTo}" Width="120">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brush.TextDim}"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Status" Binding="{Binding StatusLabel}" Width="120">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brush.Warn}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="10"/></Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-                <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource Brush.Danger}" TextWrapping="Wrap" Margin="12"
-                           Visibility="{Binding HasError, Converter={StaticResource BoolVis}}"/>
-            </Grid>
-        </Border>
+        <!-- ── Split: DataGrid (esq) + Painel de Investigação (dir) ── -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- DataGrid estilo NG-SIEM -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding AlertsView}"
+                              SelectedItem="{Binding SelectedAlertRow, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              IsReadOnly="True" GridLinesVisibility="None"
+                              HeadersVisibility="Column" SelectionMode="Single"
+                              Background="Transparent" RowBackground="Transparent"
+                              AlternatingRowBackground="#06FFFFFF"
+                              BorderThickness="0" FontSize="12"
+                              SelectionUnit="FullRow">
+                        <DataGrid.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource Brush.Bg3}" Padding="8,4" Margin="0,8,0,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource Brush.Accent}" FontWeight="SemiBold" FontSize="12"/>
+                                                <TextBlock Text=" · " Foreground="{DynamicResource Brush.TextDim}" Margin="6,0"/>
+                                                <TextBlock Text="{Binding ItemCount, StringFormat='{}{0} detecções'}" Foreground="{DynamicResource Brush.TextDim}" FontSize="11"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Severity" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{Binding SeverityBrush}" CornerRadius="3" Padding="6,1" HorizontalAlignment="Left" Margin="4,2">
+                                            <TextBlock Text="{Binding SeverityLabel}" Foreground="Black" FontWeight="Bold" FontSize="10"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Detect time" Binding="{Binding DetectTime}" Width="90">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="FontFamily" Value="Consolas"/><Setter Property="Foreground" Value="{DynamicResource Brush.TextDim}"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Detection name" Binding="{Binding DetectionName}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="90">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brush.Accent2}"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Account name" Binding="{Binding AccountName}" Width="150">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Source endpoint" Binding="{Binding SourceEndpoint}" Width="150">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Text}"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Tactic · Technique" Binding="{Binding TacticTechnique}" Width="180">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="Foreground" Value="{DynamicResource Brush.Accent}"/><Setter Property="FontSize" Value="11"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusLabel}" Width="120">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource Brush.Warn}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="10"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource Brush.Danger}" TextWrapping="Wrap" Margin="12"
+                               Visibility="{Binding HasError, Converter={StaticResource BoolVis}}"/>
+                </Grid>
+            </Border>
+
+            <!-- ── Painel de Investigação ── -->
+            <Border Grid.Column="1" Style="{StaticResource Card}" Width="440" Margin="12,0,0,0"
+                    Visibility="{Binding HasSelectedAlert, Converter={StaticResource BoolVis}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+                    <StackPanel>
+
+                        <!-- Cabeçalho do painel -->
+                        <DockPanel Margin="0,0,0,8">
+                            <Button DockPanel.Dock="Right" Content="✕" Style="{StaticResource BtnGhost}"
+                                    Command="{Binding CloseDetailCommand}" Padding="6,2" FontSize="14" ToolTip="Fechar painel"/>
+                            <Border Background="{Binding SelectedAlertRow.SeverityBrush}" CornerRadius="3" Padding="8,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedAlertRow.SeverityLabel}" Foreground="Black" FontWeight="Bold" FontSize="11"/>
+                            </Border>
+                        </DockPanel>
+
+                        <!-- Nome da detecção -->
+                        <TextBlock Text="{Binding SelectedAlertRow.DetectionName}" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush.Text}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+
+                        <!-- Metadados em linha -->
+                        <WrapPanel Margin="0,0,0,2">
+                            <Border Style="{StaticResource ChipBase}" Background="#22FFFFFF" Margin="0,0,4,4">
+                                <TextBlock Text="{Binding SelectedAlertRow.Category}" FontSize="11" Foreground="{DynamicResource Brush.Accent2}"/>
+                            </Border>
+                            <Border Style="{StaticResource ChipBase}" Background="#22FFFFFF" Margin="0,0,4,4">
+                                <TextBlock Text="{Binding SelectedAlertRow.StatusLabel}" FontSize="11" Foreground="{DynamicResource Brush.Warn}"/>
+                            </Border>
+                        </WrapPanel>
+                        <TextBlock Text="{Binding SelectedAlertRow.DetectTime}" Style="{StaticResource Dim}" FontFamily="Consolas" FontSize="11" Margin="0,0,0,4"/>
+
+                        <Separator Margin="0,8" Background="{DynamicResource Brush.Stroke}"/>
+
+                        <!-- Endpoint -->
+                        <TextBlock Text="Endpoint" Style="{StaticResource SectionLabel}"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="🖥  " FontSize="16" VerticalAlignment="Top"/>
+                            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                <TextBlock Text="{Binding SelectedAlertRow.SourceEndpoint}" Style="{StaticResource FieldValue}" FontWeight="SemiBold"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="AID: " Style="{StaticResource Dim}" FontSize="11"/>
+                                    <TextBlock Text="{Binding SelectedAlertRow.AidShort}" Foreground="{DynamicResource Brush.TextDim}" FontFamily="Consolas" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Identidade -->
+                        <TextBlock Text="Identidade" Style="{StaticResource SectionLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="👤  " FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SelectedAlertRow.AccountName}" Style="{StaticResource FieldValue}" Margin="4,0,0,0"/>
+                        </StackPanel>
+
+                        <!-- MITRE ATT&amp;CK -->
+                        <TextBlock Text="MITRE ATT&amp;CK" Style="{StaticResource SectionLabel}"/>
+                        <TextBlock Text="{Binding SelectedAlertRow.MitreDisplay}" Style="{StaticResource FieldValue}"
+                                   Foreground="{DynamicResource Brush.Accent}" FontFamily="Consolas" FontSize="12" Margin="0,0,0,4"/>
+
+                        <!-- Descrição -->
+                        <TextBlock Text="Descrição" Style="{StaticResource SectionLabel}"/>
+                        <TextBlock Text="{Binding SelectedAlertRow.Alert.Description}" Style="{StaticResource Dim}"
+                                   TextWrapping="Wrap" FontSize="12" Margin="0,0,0,4"/>
+
+                        <Separator Margin="0,10" Background="{DynamicResource Brush.Stroke}"/>
+
+                        <!-- ── Ações de Resposta a Incidente ── -->
+                        <TextBlock Text="Resposta ao Incidente" Style="{StaticResource SectionLabel}"/>
+
+                        <!-- Contenção -->
+                        <WrapPanel Margin="0,0,0,6">
+                            <Button Content="🔒  Conter Host" Style="{StaticResource ActionBtn}"
+                                    Command="{Binding ContainHostCommand}"
+                                    IsEnabled="{Binding SelectedAlertRow.HasAid}"
+                                    ToolTip="Isola o host via Falcon Network Containment — bloqueia todo tráfego de rede exceto comunicação com a Falcon Cloud."/>
+                            <Button Content="🔓  Levantar Contenção" Style="{StaticResource ActionBtn}"
+                                    Command="{Binding LiftContainmentCommand}"
+                                    IsEnabled="{Binding SelectedAlertRow.HasAid}"
+                                    ToolTip="Remove o isolamento — reintegra o host à rede corporativa."/>
+                        </WrapPanel>
+
+                        <!-- Investigação -->
+                        <WrapPanel Margin="0,0,0,6">
+                            <Button Content="⌨  Console RTR" Style="{StaticResource ActionBtn}"
+                                    Command="{Binding OpenRtrCommand}"
+                                    ToolTip="Abre o Console RTR com este host pré-selecionado para execução de comandos remotos."/>
+                            <Button Content="🦅  Velociraptor" Style="{StaticResource ActionBtn}"
+                                    Command="{Binding RunVelociraptorCommand}"
+                                    IsEnabled="{Binding SelectedAlertRow.HasAid}"
+                                    ToolTip="Coleta artefatos forenses com Velociraptor via RTR neste endpoint."/>
+                            <Button Content="💾  Forense (Disco)" Style="{StaticResource ActionBtn}"
+                                    Command="{Binding OpenForensicsCommand}"
+                                    IsEnabled="{Binding SelectedAlertRow.HasAid}"
+                                    ToolTip="Abre a tela Forense (KAPE/Velociraptor/UAC) com este host pré-selecionado."/>
+                            <Button Content="🧠  Capturar Memória" Style="{StaticResource ActionBtn}"
+                                    Command="{Binding OpenMemoryCommand}"
+                                    IsEnabled="{Binding SelectedAlertRow.HasAid}"
+                                    ToolTip="Abre a tela Memória com este host pré-selecionado para captura de RAM."/>
+                        </WrapPanel>
+
+                        <Separator Margin="0,6,0,0" Background="{DynamicResource Brush.Stroke}"/>
+
+                        <!-- Atualizar Status -->
+                        <TextBlock Text="Atualizar Status do Alerta" Style="{StaticResource SectionLabel}"/>
+                        <WrapPanel Margin="0,0,0,4">
+                            <Button Content="Em Progresso" Style="{StaticResource StatusBtn}" Command="{Binding UpdateStatusCommand}" CommandParameter="in_progress"
+                                    ToolTip="Marca como Em Progresso — indica que um analista está investigando."/>
+                            <Button Content="✅  Verdadeiro +" Style="{StaticResource StatusBtn}" Command="{Binding UpdateStatusCommand}" CommandParameter="true_positive"
+                                    ToolTip="Confirma como Verdadeiro Positivo — ameaça real confirmada."/>
+                            <Button Content="❌  Falso +"     Style="{StaticResource StatusBtn}" Command="{Binding UpdateStatusCommand}" CommandParameter="false_positive"
+                                    ToolTip="Marca como Falso Positivo — alerta espúrio, criar exceção."/>
+                            <Button Content="Ignorar"         Style="{StaticResource StatusBtn}" Command="{Binding UpdateStatusCommand}" CommandParameter="ignored"/>
+                            <Button Content="Fechar"          Style="{StaticResource StatusBtn}" Command="{Binding UpdateStatusCommand}" CommandParameter="closed"/>
+                        </WrapPanel>
+
+                        <!-- Encaminhar para Incidente -->
+                        <Button Content="🚨  Encaminhar para Incidente" Style="{StaticResource BtnPrimary}"
+                                Command="{Binding EscalateToIncidentCommand}" Margin="0,4,0,8" HorizontalAlignment="Stretch"
+                                ToolTip="Marca o alerta como Em Progresso. O Falcon correlaciona alertas e cria Incidentes automaticamente. Verifique em Incidentes (Ctrl+2)."/>
+
+                        <!-- Resultado da última ação -->
+                        <Border Background="#11FFFFFF" CornerRadius="4" Padding="10,8" Margin="0,4,0,0"
+                                Visibility="{Binding ActionMessage, Converter={StaticResource BoolVis}}">
+                            <TextBlock Text="{Binding ActionMessage}" Foreground="{Binding ActionMessageColor}"
+                                       TextWrapping="Wrap" FontSize="12"/>
+                        </Border>
+
+                        <!-- Loading indicator -->
+                        <TextBlock Text="⏳  Executando ação…" Style="{StaticResource Dim}" FontSize="12" Margin="0,4,0,0"
+                                   Visibility="{Binding IsActionBusy, Converter={StaticResource BoolVis}}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

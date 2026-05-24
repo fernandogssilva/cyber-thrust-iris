@@ -170,9 +170,10 @@ public partial class App : Application
                     services.AddSingleton<HealthCheckService>();
                     services.AddSingleton<AppConfigStore>();
                     services.AddSingleton<ConnectionTester>();
-                    services.AddSingleton<SessionCredentials>();      // credenciais em memória apenas
-                    services.AddSingleton<ArtifactReputationClient>(); // VirusTotal / MalwareBazaar via API
-                    services.AddSingleton<ThreatIntelFeedService>();   // URLhaus / ThreatFox / Bazaar live feed
+                    services.AddSingleton<SessionCredentials>();           // credenciais em memória apenas
+                    services.AddSingleton<ArtifactReputationClient>();     // VirusTotal / MalwareBazaar via API
+                    services.AddSingleton<ThreatIntelFeedService>();       // URLhaus / ThreatFox / Bazaar live feed
+                    services.AddSingleton<AlertInvestigationContext>();    // ponte Detecções → RTR/Forense/Memória (Zero-Storage)
 
                     services.AddTransient<MainViewModel>();
                     services.AddTransient<LoginViewModel>();
@@ -181,7 +182,7 @@ public partial class App : Application
                     services.AddTransient<AttackTreeViewModel>();
                     services.AddTransient<IncidentsViewModel>();
                     services.AddTransient<AlertsViewModel>();
-                    services.AddTransient<RtrConsoleViewModel>();
+                    services.AddSingleton<RtrConsoleViewModel>(); // singleton: sessão RTR sobrevive à navegação
                     services.AddTransient<ForensicsViewModel>();
                     services.AddTransient<MemoryViewModel>();
                     services.AddTransient<SettingsViewModel>();

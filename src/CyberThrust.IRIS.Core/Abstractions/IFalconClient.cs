@@ -12,6 +12,8 @@ public interface IFalconClient
     Task<Result<IReadOnlyList<FalconHost>>> SearchHostsAsync(string filter, CancellationToken ct = default);
     Task<Result<bool>> ContainHostAsync(string aid, CancellationToken ct = default);
     Task<Result<bool>> LiftContainmentAsync(string aid, CancellationToken ct = default);
+    /// <summary>Atualiza o status de um alerta (new | in_progress | true_positive | false_positive | ignored | closed).</summary>
+    Task<Result<bool>> UpdateAlertStatusAsync(string compositeId, string status, CancellationToken ct = default);
     Task<Result<RtrSessionInfo>> StartRtrSessionAsync(string aid, CancellationToken ct = default);
     Task<Result<RtrCommandResult>> ExecuteRtrAsync(string sessionId, string command, string commandString, CancellationToken ct = default);
     Task<Result<IReadOnlyList<RtrCommandResult>>> ExecuteRtrBatchAsync(IEnumerable<string> aids, string command, string commandString, TimeSpan? timeout = null, CancellationToken ct = default);

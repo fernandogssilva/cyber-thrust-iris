@@ -5,6 +5,31 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] — 2026-05-24
+
+### Added
+- **Painel lateral de investigação em Detecções** — clicar em qualquer linha da grade abre um painel de 440 px à direita com todos os campos do alerta (severidade, nome da detecção, endpoint, identidade, MITRE ATT&CK, descrição) sem sair da tela.
+- **Ações de IR direto na detecção** — botões inline no painel:
+  - **Conter Host** / **Levantar Contenção** — chama Falcon Network Containment API em 1 clique; feedback de sucesso/erro inline.
+  - **Console RTR** — navega para o console com AID pré-preenchido e conecta automaticamente.
+  - **Velociraptor** — navega para Forense com ferramenta Velociraptor pré-selecionada.
+  - **Forense (Disco)** / **Capturar Memória** — atalhos para os módulos correspondentes com contexto de investigação preenchido.
+- **Atualizar status do alerta** — botões Em Progresso / Verdadeiro+ / Falso+ / Ignorar / Fechar chamam `PATCH /alerts/entities/alerts/v2` diretamente; a grade recarrega silenciosamente após sucesso.
+- **Encaminhar para Incidente** — marca o alerta como `in_progress` e exibe instrução para o analista acompanhar em Incidentes (Ctrl+2); integra ao fluxo de correlação automática do Falcon.
+- **Console RTR real** (`RtrConsoleViewModel` + `RtrConsoleView`) — substitui o placeholder:
+  - Terminal monoespaçado com histórico de saída colorido (Info/Prompt/Output/Error/Success).
+  - Barra de comandos com tecla Enter + botão Executar.
+  - Quick-actions: `ls`, `ps`, `netstat`, `ipconfig`, `whoami`, `env`, `history`, `reg query`, `tasklist (runscript)`, `autoruns (runscript)`.
+  - Botões **Conter Host** e **Levantar Contenção** disponíveis também na console RTR.
+  - Auto-scroll para a última linha a cada nova saída.
+  - Sessão singleton: sessão RTR sobrevive a navegação entre telas (o analista pode ir a Incidentes e voltar sem perder o terminal).
+  - Desconectar limpa a sessão; o contexto de investigação persiste.
+- **`AlertInvestigationContext`** (singleton em memória) — transporta AID, hostname e ferramenta forense preferida entre Detecções → RTR / Forense / Memória. Zero-Storage: nenhum dado escrito em disco.
+
+### Changed
+- `RtrConsoleViewModel` promovido de `AddTransient` para `AddSingleton` na DI para preservar a sessão RTR ativa durante a navegação.
+- `AlertsViewModel` passou a receber `AlertInvestigationContext` via constructor injection.
+
 ## [0.4.3] — 2026-05-24
 
 ### Fixed
