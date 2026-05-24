@@ -18,38 +18,57 @@ public sealed class RtrTerminalLine
     public string      Text   { get; init; } = string.Empty;
     public Brush       Fore   { get; init; } = Brushes.White;
 
-    // Static factories keep construction uniform
     public static RtrTerminalLine Info(string t)    => new() { Kind = RtrLineKind.Info,    Text = t, Fore = new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xC9)) };
     public static RtrTerminalLine Prompt(string t)  => new() { Kind = RtrLineKind.Prompt,  Text = t, Fore = new SolidColorBrush(Color.FromRgb(0x40, 0xE0, 0xFF)) };
     public static RtrTerminalLine Output(string t)  => new() { Kind = RtrLineKind.Output,  Text = t, Fore = new SolidColorBrush(Color.FromRgb(0xE2, 0xE8, 0xFF)) };
     public static RtrTerminalLine Error(string t)   => new() { Kind = RtrLineKind.Error,   Text = t, Fore = new SolidColorBrush(Color.FromRgb(0xFF, 0x52, 0x52)) };
     public static RtrTerminalLine Success(string t) => new() { Kind = RtrLineKind.Success, Text = t, Fore = new SolidColorBrush(Color.FromRgb(0x00, 0xE6, 0x76)) };
+    public static RtrTerminalLine Warn(string t)    => new() { Kind = RtrLineKind.Info,    Text = t, Fore = new SolidColorBrush(Color.FromRgb(0xFF, 0xD7, 0x40)) };
     public static RtrTerminalLine Blank()           => new() { Kind = RtrLineKind.Info,    Text = string.Empty, Fore = Brushes.Transparent };
 }
 
 // ─── ViewModel ───────────────────────────────────────────────────────────────
 /// <summary>
-/// Console RTR (Real-Time Response) — shell interativo contra 1 endpoint via Falcon.
-/// Zero-Storage: nenhum dado é persistido em disco, toda interação é efêmera em memória.
+/// Console RTR — terminal interativo + catálogo de 20 scripts CrowdStrike +
+/// filtros de investigação (host / IP / domínio / hash / usuário / processo).
+/// Zero-Storage: sessão efêmera em memória, nada gravado em disco.
 /// </summary>
 public partial class RtrConsoleViewModel : ViewModelBase
 {
-    private readonly IFalconClient          _falcon;
-    private readonly INavigationService     _nav;
+    private readonly IFalconClient             _falcon;
+    private readonly INavigationService        _nav;
     private readonly AlertInvestigationContext _ctx;
 
     private RtrSessionInfo? _session;
 
-    // ─── Observable state ────────────────────────────────────────────────────
-    [ObservableProperty] private string  _aidInput       = string.Empty;
+    // ─── Terminal output ──────────────────────────────────────────────────────
+    public ObservableCollection<RtrTerminalLine> Terminal { get; } = new();
+
+    // ─── Session state ────────────────────────────────────────────────────────
+    [ObservableProperty] private string  _aidInput        = string.Empty;
     [ObservableProperty] private string  _hostnameDisplay = string.Empty;
     [ObservableProperty] private bool    _isConnected;
     [ObservableProperty] private bool    _isNotConnected  = true;
     [ObservableProperty] private bool    _canConnect;
-    [ObservableProperty] private string  _commandInput   = string.Empty;
-    [ObservableProperty] private string  _statusLine     = "Desconectado — informe o AID e clique Conectar.";
+    [ObservableProperty] private string  _commandInput    = string.Empty;
+    [ObservableProperty] private string  _statusLine      = "Desconectado.";
 
-    public ObservableCollection<RtrTerminalLine> Terminal { get; } = new();
+    // ─── Investigation filters ────────────────────────────────────────────────
+    [ObservableProperty] private string _hostFilter    = string.Empty;
+    [ObservableProperty] private string _ipFilter      = string.Empty;
+    [ObservableProperty] private string _domainFilter  = string.Empty;
+    [ObservableProperty] private string _hashFilter    = string.Empty;
+    [ObservableProperty] private string _userFilter    = string.Empty;
+    [ObservableProperty] private string _processFilter = string.Empty;
+    [ObservableProperty] private bool   _isSearchingHost;
+    [ObservableProperty] private string _hostSearchResult = string.Empty;
+
+    // ─── Script catalog exposed to XAML ─────────────────────────────────────
+    public IReadOnlyList<RtrScript> ScriptsRecon       { get; } = RtrScriptCatalog.Reconhecimento;
+    public IReadOnlyList<RtrScript> ScriptsPersistencia { get; } = RtrScriptCatalog.Persistencia;
+    public IReadOnlyList<RtrScript> ScriptsUsuarios     { get; } = RtrScriptCatalog.Usuarios;
+    public IReadOnlyList<RtrScript> ScriptsForense      { get; } = RtrScriptCatalog.Forense;
+    public IReadOnlyList<RtrScript> ScriptsColeta       { get; } = RtrScriptCatalog.Coleta;
 
     // ─── Constructor ─────────────────────────────────────────────────────────
     public RtrConsoleViewModel(IFalconClient falcon, INavigationService nav, AlertInvestigationContext ctx)
@@ -60,75 +79,59 @@ public partial class RtrConsoleViewModel : ViewModelBase
 
         PrintBanner();
 
-        // Pre-fill from investigation context (navigated from Detecções panel)
         if (ctx.HasContext)
         {
-            AidInput        = ctx.Aid       ?? string.Empty;
-            HostnameDisplay = ctx.Hostname  ?? string.Empty;
-            CanConnect      = true;
+            AidInput        = ctx.Aid      ?? string.Empty;
+            HostnameDisplay = ctx.Hostname ?? string.Empty;
+            HostFilter      = ctx.Hostname ?? string.Empty;
+            CanConnect      = !string.IsNullOrWhiteSpace(AidInput);
 
-            if (!string.IsNullOrWhiteSpace(AidInput))
+            if (CanConnect)
             {
                 Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Contexto de investigação carregado."));
-                Terminal.Add(RtrTerminalLine.Info($"       Hostname : {HostnameDisplay}"));
-                Terminal.Add(RtrTerminalLine.Info($"       AID      : {AidInput}"));
+                Terminal.Add(RtrTerminalLine.Info($"       Host : {HostnameDisplay}"));
+                Terminal.Add(RtrTerminalLine.Info($"       AID  : {AidInput}"));
                 Terminal.Add(RtrTerminalLine.Blank());
-
-                // Auto-connect when arriving from an alert
                 _ = ConnectCommand.ExecuteAsync(null);
             }
         }
         else
         {
-            Terminal.Add(RtrTerminalLine.Info("Informe o AID do endpoint-alvo e clique Conectar."));
+            Terminal.Add(RtrTerminalLine.Info("Preencha o AID ou busque pelo hostname no painel de filtros e clique Conectar."));
             Terminal.Add(RtrTerminalLine.Blank());
         }
     }
 
     // ─── Property change handlers ─────────────────────────────────────────────
-    partial void OnAidInputChanged(string value)
-    {
-        CanConnect = !string.IsNullOrWhiteSpace(value) && !IsConnected;
-    }
+    partial void OnAidInputChanged(string value)    => CanConnect = !string.IsNullOrWhiteSpace(value) && !IsConnected;
+    partial void OnIsConnectedChanged(bool value)   { IsNotConnected = !value; CanConnect = !value && !string.IsNullOrWhiteSpace(AidInput); }
 
-    partial void OnIsConnectedChanged(bool value)
-    {
-        IsNotConnected = !value;
-        CanConnect     = !value && !string.IsNullOrWhiteSpace(AidInput);
-    }
-
-    // ─── Connect / Disconnect ─────────────────────────────────────────────────
+    // ─── Session: Connect / Disconnect ───────────────────────────────────────
     [RelayCommand]
     private async Task Connect()
     {
         var aid = AidInput.Trim();
         if (string.IsNullOrWhiteSpace(aid)) return;
 
-        IsBusy     = true;
-        CanConnect = false;
-        StatusLine = $"Iniciando sessão RTR em {Abbreviate(aid)}…";
-        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Conectando ao endpoint AID={Abbreviate(aid)}…"));
+        IsBusy = true; CanConnect = false;
+        StatusLine = $"Iniciando sessão RTR em {Abbr(aid)}…";
+        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Conectando → AID={Abbr(aid)}…"));
 
         try
         {
             var r = await _falcon.StartRtrSessionAsync(aid).ConfigureAwait(true);
-
             if (r.IsFailure)
             {
-                Terminal.Add(RtrTerminalLine.Error($"[{Ts}] ERRO ao iniciar sessão: {r.Error}"));
-                StatusLine = "Falha ao conectar.";
-                Log.Warning("RTR Connect failed: {Error}", r.Error);
-                return;
+                Terminal.Add(RtrTerminalLine.Error($"[{Ts}] ERRO: {r.Error}"));
+                StatusLine = "Falha ao conectar."; return;
             }
-
-            _session        = r.Value!;
-            IsConnected     = true;
-            var host        = DisplayHost;
-            StatusLine      = $"Sessão ativa — {host}  (expira {_session.ExpiresUtc.ToLocalTime():HH:mm:ss})";
-
+            _session    = r.Value!;
+            IsConnected = true;
+            var host    = DisplayHost;
+            StatusLine  = $"Sessão ativa — {host}  (expira {_session.ExpiresUtc.ToLocalTime():HH:mm:ss})";
             Terminal.Add(RtrTerminalLine.Success($"[{Ts}] ✅ Sessão RTR estabelecida."));
-            Terminal.Add(RtrTerminalLine.Info($"       SessionID : {Abbreviate(_session.SessionId, 16)}…"));
             Terminal.Add(RtrTerminalLine.Info($"       Host      : {host}"));
+            Terminal.Add(RtrTerminalLine.Info($"       SessionID : {Abbr(_session.SessionId, 16)}…"));
             Terminal.Add(RtrTerminalLine.Info($"       Expira em : {_session.ExpiresUtc.ToLocalTime():HH:mm:ss}"));
             Terminal.Add(RtrTerminalLine.Blank());
         }
@@ -138,19 +141,15 @@ public partial class RtrConsoleViewModel : ViewModelBase
             Terminal.Add(RtrTerminalLine.Error($"[{Ts}] Exceção: {ex.Message}"));
             StatusLine = "Erro inesperado.";
         }
-        finally
-        {
-            IsBusy = false;
-        }
+        finally { IsBusy = false; }
     }
 
     [RelayCommand]
     private void Disconnect()
     {
-        _session    = null;
-        IsConnected = false;
-        StatusLine  = "Sessão encerrada.";
-        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Sessão RTR encerrada pelo analista."));
+        _session = null; IsConnected = false;
+        StatusLine = "Sessão encerrada.";
+        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Sessão RTR encerrada."));
         Terminal.Add(RtrTerminalLine.Blank());
     }
 
@@ -160,66 +159,74 @@ public partial class RtrConsoleViewModel : ViewModelBase
     {
         var cmd = CommandInput.Trim();
         if (string.IsNullOrWhiteSpace(cmd) || _session is null) return;
-
         CommandInput = string.Empty;
-
-        Terminal.Add(RtrTerminalLine.Prompt($"PS {DisplayHost}> {cmd}"));
-
-        // Parse base command (first whitespace-separated token)
-        var baseCmd = cmd.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries)[0].ToLowerInvariant();
-
-        IsBusy     = true;
-        StatusLine = $"Executando: {cmd}";
-
-        try
-        {
-            var r = await _falcon.ExecuteRtrAsync(_session.SessionId, baseCmd, cmd).ConfigureAwait(true);
-
-            if (r.IsFailure)
-            {
-                Terminal.Add(RtrTerminalLine.Error($"Erro de API: {r.Error}"));
-                Log.Warning("RTR SendCommand failed: {Error}", r.Error);
-            }
-            else
-            {
-                var result = r.Value!;
-
-                if (!string.IsNullOrWhiteSpace(result.Stdout))
-                    foreach (var line in result.Stdout.Split('\n'))
-                        Terminal.Add(RtrTerminalLine.Output(line.TrimEnd('\r')));
-
-                if (!string.IsNullOrWhiteSpace(result.Stderr))
-                    foreach (var line in result.Stderr.Split('\n'))
-                        Terminal.Add(RtrTerminalLine.Error(line.TrimEnd('\r')));
-
-                if (!result.Complete)
-                    Terminal.Add(RtrTerminalLine.Info("(Tarefa assíncrona — aguardando conclusão em background)"));
-
-                if (result.ExitCode.HasValue && result.ExitCode != 0)
-                    Terminal.Add(RtrTerminalLine.Info($"Exit code: {result.ExitCode}"));
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "RTR Send exception");
-            Terminal.Add(RtrTerminalLine.Error($"Exceção local: {ex.Message}"));
-        }
-        finally
-        {
-            IsBusy     = false;
-            StatusLine = IsConnected ? $"Pronto — {DisplayHost}" : "Desconectado.";
-        }
-
-        Terminal.Add(RtrTerminalLine.Blank());
+        await ExecuteRawAsync(cmd).ConfigureAwait(true);
     }
 
-    // ─── Quick commands ───────────────────────────────────────────────────────
+    // ─── Script catalog execution ─────────────────────────────────────────────
+    [RelayCommand]
+    private async Task RunScript(RtrScript script)
+    {
+        if (_session is null)
+        {
+            Terminal.Add(RtrTerminalLine.Warn($"[{Ts}] Conecte primeiro ao endpoint antes de executar scripts."));
+            Terminal.Add(RtrTerminalLine.Blank());
+            return;
+        }
+
+        var cmd = BuildParameterizedCommand(script.CommandString);
+        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] ▶ Script: {script.Icon} {script.Name}"));
+        if (script.Risk == RtrScriptRisk.High)
+            Terminal.Add(RtrTerminalLine.Warn($"       ⚠  Risco ALTO — alterações no sistema são possíveis."));
+        Terminal.Add(RtrTerminalLine.Blank());
+        await ExecuteRawAsync(cmd, script.BaseCommand).ConfigureAwait(true);
+    }
+
+    // ─── Quick shortcut (legacy toolbar) ─────────────────────────────────────
     [RelayCommand]
     private void QuickCommand(string cmd)
     {
         CommandInput = cmd;
-        if (IsConnected)
-            _ = SendCommand.ExecuteAsync(null);
+        if (IsConnected) _ = SendCommand.ExecuteAsync(null);
+    }
+
+    // ─── Investigation filters: Host lookup ───────────────────────────────────
+    [RelayCommand]
+    private async Task SearchHost()
+    {
+        var q = HostFilter.Trim();
+        if (string.IsNullOrWhiteSpace(q)) return;
+
+        IsSearchingHost   = true;
+        HostSearchResult  = string.Empty;
+        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] 🔍 Buscando host: '{q}'…"));
+
+        var r = await _falcon.SearchHostsAsync($"hostname:'{q}'").ConfigureAwait(true);
+        IsSearchingHost = false;
+
+        if (r.IsFailure)
+        {
+            HostSearchResult = $"Erro: {r.Error}";
+            Terminal.Add(RtrTerminalLine.Error($"[{Ts}] Falha na busca: {r.Error}"));
+            return;
+        }
+
+        var hosts = r.Value!;
+        if (hosts.Count == 0)
+        {
+            HostSearchResult = "Nenhum host encontrado.";
+            Terminal.Add(RtrTerminalLine.Warn($"[{Ts}] Nenhum host encontrado para '{q}'."));
+            return;
+        }
+
+        var h = hosts[0];
+        AidInput        = h.Aid ?? string.Empty;
+        HostnameDisplay = h.Hostname ?? string.Empty;
+        HostSearchResult = $"✅ {h.Hostname} → {Abbr(h.Aid ?? "", 16)}";
+        Terminal.Add(RtrTerminalLine.Success($"[{Ts}] ✅ Host encontrado: {h.Hostname}  |  AID={Abbr(h.Aid ?? "", 16)}"));
+        if (hosts.Count > 1)
+            Terminal.Add(RtrTerminalLine.Info($"       (+{hosts.Count - 1} outros hosts com nome similar)"));
+        Terminal.Add(RtrTerminalLine.Blank());
     }
 
     // ─── Host containment ─────────────────────────────────────────────────────
@@ -227,30 +234,13 @@ public partial class RtrConsoleViewModel : ViewModelBase
     private async Task ContainHost()
     {
         var aid = AidInput.Trim();
-        if (string.IsNullOrWhiteSpace(aid))
-        {
-            Terminal.Add(RtrTerminalLine.Error($"[{Ts}] AID não preenchido. Informe o AID antes de conter."));
-            return;
-        }
-
-        IsBusy     = true;
-        StatusLine = "Isolando host via Network Containment…";
-        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Iniciando Network Containment em {Abbreviate(aid)}…"));
-
+        if (string.IsNullOrWhiteSpace(aid)) { Terminal.Add(RtrTerminalLine.Error($"[{Ts}] AID não preenchido.")); return; }
+        IsBusy = true; StatusLine = "Isolando host…";
+        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Iniciando Network Containment em {Abbr(aid)}…"));
         var r = await _falcon.ContainHostAsync(aid).ConfigureAwait(true);
         IsBusy = false;
-
-        if (r.IsSuccess)
-        {
-            Terminal.Add(RtrTerminalLine.Success($"[{Ts}] ✅ Host '{DisplayHost}' isolado com sucesso."));
-            Terminal.Add(RtrTerminalLine.Info("       Todo tráfego de rede externo foi bloqueado."));
-            StatusLine = "Host isolado.";
-        }
-        else
-        {
-            Terminal.Add(RtrTerminalLine.Error($"[{Ts}] ❌ Falha ao isolar: {r.Error}"));
-            StatusLine = "Falha ao isolar host.";
-        }
+        if (r.IsSuccess) { Terminal.Add(RtrTerminalLine.Success($"[{Ts}] ✅ Host '{DisplayHost}' isolado. Tráfego externo bloqueado.")); StatusLine = "Host isolado."; }
+        else             { Terminal.Add(RtrTerminalLine.Error($"[{Ts}] ❌ Falha: {r.Error}")); StatusLine = "Falha ao isolar."; }
         Terminal.Add(RtrTerminalLine.Blank());
     }
 
@@ -258,57 +248,83 @@ public partial class RtrConsoleViewModel : ViewModelBase
     private async Task LiftContainment()
     {
         var aid = AidInput.Trim();
-        if (string.IsNullOrWhiteSpace(aid))
-        {
-            Terminal.Add(RtrTerminalLine.Error($"[{Ts}] AID não preenchido."));
-            return;
-        }
-
-        IsBusy     = true;
-        StatusLine = "Levantando contenção…";
-        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Levantando Network Containment de {Abbreviate(aid)}…"));
-
+        if (string.IsNullOrWhiteSpace(aid)) { Terminal.Add(RtrTerminalLine.Error($"[{Ts}] AID não preenchido.")); return; }
+        IsBusy = true; StatusLine = "Levantando contenção…";
+        Terminal.Add(RtrTerminalLine.Info($"[{Ts}] Levantando Network Containment de {Abbr(aid)}…"));
         var r = await _falcon.LiftContainmentAsync(aid).ConfigureAwait(true);
         IsBusy = false;
-
-        if (r.IsSuccess)
-        {
-            Terminal.Add(RtrTerminalLine.Success($"[{Ts}] ✅ Contenção levantada — '{DisplayHost}' reintegrado à rede."));
-            StatusLine = "Contenção levantada.";
-        }
-        else
-        {
-            Terminal.Add(RtrTerminalLine.Error($"[{Ts}] ❌ Falha: {r.Error}"));
-            StatusLine = "Falha ao levantar contenção.";
-        }
+        if (r.IsSuccess) { Terminal.Add(RtrTerminalLine.Success($"[{Ts}] ✅ Contenção levantada — '{DisplayHost}' reintegrado à rede.")); StatusLine = "Contenção levantada."; }
+        else             { Terminal.Add(RtrTerminalLine.Error($"[{Ts}] ❌ Falha: {r.Error}")); StatusLine = "Falha ao levantar."; }
         Terminal.Add(RtrTerminalLine.Blank());
     }
 
     // ─── Terminal management ──────────────────────────────────────────────────
-    [RelayCommand]
-    private void ClearTerminal()
+    [RelayCommand] private void ClearTerminal() { Terminal.Clear(); PrintBanner(); }
+    [RelayCommand] private void BackToAlerts()  => _nav.NavigateTo("alerts");
+
+    // ─── Internal: execute any raw command ───────────────────────────────────
+    private async Task ExecuteRawAsync(string cmd, string? baseOverride = null)
     {
-        Terminal.Clear();
-        PrintBanner();
+        if (_session is null) return;
+        var host    = DisplayHost;
+        var baseCm  = baseOverride ?? cmd.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries)[0].ToLowerInvariant();
+        Terminal.Add(RtrTerminalLine.Prompt($"PS {host}> {(cmd.Length > 120 ? cmd[..120] + "…" : cmd)}"));
+        IsBusy = true; StatusLine = $"Executando: {baseCm}…";
+        try
+        {
+            var r = await _falcon.ExecuteRtrAsync(_session.SessionId, baseCm, cmd).ConfigureAwait(true);
+            if (r.IsFailure)
+            {
+                Terminal.Add(RtrTerminalLine.Error($"Erro de API: {r.Error}"));
+            }
+            else
+            {
+                var res = r.Value!;
+                if (!string.IsNullOrWhiteSpace(res.Stdout))
+                    foreach (var ln in res.Stdout.Split('\n'))
+                        Terminal.Add(RtrTerminalLine.Output(ln.TrimEnd('\r')));
+                if (!string.IsNullOrWhiteSpace(res.Stderr))
+                    foreach (var ln in res.Stderr.Split('\n'))
+                        Terminal.Add(RtrTerminalLine.Error(ln.TrimEnd('\r')));
+                if (!res.Complete)
+                    Terminal.Add(RtrTerminalLine.Warn("(Tarefa assíncrona — conclusão em background)"));
+                if (res.ExitCode.HasValue && res.ExitCode != 0)
+                    Terminal.Add(RtrTerminalLine.Info($"Exit code: {res.ExitCode}"));
+            }
+        }
+        catch (Exception ex) { Log.Error(ex, "RTR Send exception"); Terminal.Add(RtrTerminalLine.Error($"Exceção: {ex.Message}")); }
+        finally { IsBusy = false; StatusLine = IsConnected ? $"Pronto — {host}" : "Desconectado."; }
+        Terminal.Add(RtrTerminalLine.Blank());
     }
 
-    [RelayCommand]
-    private void BackToAlerts() => _nav.NavigateTo("alerts");
+    // ─── Parameter substitution (filtros → comandos) ─────────────────────────
+    private string BuildParameterizedCommand(string template)
+    {
+        return template
+            .Replace("{HOST}",    HostFilter.Trim())
+            .Replace("{IP}",      IpFilter.Trim())
+            .Replace("{DOMAIN}",  DomainFilter.Trim())
+            .Replace("{HASH}",    HashFilter.Trim())
+            .Replace("{USER}",    UserFilter.Trim())
+            .Replace("{PROCESS}", ProcessFilter.Trim());
+    }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    // ─── Banner ───────────────────────────────────────────────────────────────
     private void PrintBanner()
     {
         Terminal.Add(RtrTerminalLine.Info("╔══════════════════════════════════════════════════════════════╗"));
         Terminal.Add(RtrTerminalLine.Info("║  CyberThrust.IRIS — Falcon Real-Time Response (RTR)          ║"));
+        Terminal.Add(RtrTerminalLine.Info("║  20 scripts CrowdStrike · Filtros de investigação            ║"));
         Terminal.Add(RtrTerminalLine.Info("║  Zero-Storage: sessão efêmera, nada gravado em disco         ║"));
         Terminal.Add(RtrTerminalLine.Info("╚══════════════════════════════════════════════════════════════╝"));
         Terminal.Add(RtrTerminalLine.Blank());
     }
 
+    // ─── Helpers ─────────────────────────────────────────────────────────────
     private string DisplayHost =>
-        string.IsNullOrWhiteSpace(HostnameDisplay) ? Abbreviate(AidInput) : HostnameDisplay;
+        string.IsNullOrWhiteSpace(HostnameDisplay) ? Abbr(AidInput) : HostnameDisplay;
 
-    private static string Abbreviate(string s, int max = 12) =>
+    private static string Abbr(string s, int max = 12) =>
         string.IsNullOrEmpty(s) ? "?" : (s.Length > max ? s[..max] + "…" : s);
 
     private static string Ts => DateTime.Now.ToString("HH:mm:ss");

@@ -183,8 +183,8 @@ public partial class App : Application
                     services.AddTransient<IncidentsViewModel>();
                     services.AddTransient<AlertsViewModel>();
                     services.AddSingleton<RtrConsoleViewModel>(); // singleton: sessão RTR sobrevive à navegação
-                    services.AddTransient<ForensicsViewModel>();
-                    services.AddTransient<MemoryViewModel>();
+                    services.AddSingleton<ForensicsViewModel>(); // singleton: sessão RTR sobrevive à navegação
+                    services.AddSingleton<MemoryViewModel>();    // singleton: sessão RTR sobrevive à navegação
                     services.AddTransient<SettingsViewModel>();
                     services.AddTransient<ReputationViewModel>();
                     services.AddTransient<WelcomeViewModel>();

@@ -12,8 +12,8 @@
     <SelfContained>false</SelfContained>
     <ApplicationIcon>Assets\iris.ico</ApplicationIcon>
     <AssemblyTitle>CyberThrust.IRIS</AssemblyTitle>
-    <FileVersion>0.4.4.0</FileVersion>
-    <InformationalVersion>0.4.4 (Apache-2.0 Open Source)</InformationalVersion>
+    <FileVersion>0.4.5.0</FileVersion>
+    <InformationalVersion>0.4.5 (Apache-2.0 Open Source)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

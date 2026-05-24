@@ -1,5 +1,5 @@
 namespace CyberThrust.IRIS.App.ViewModels;
 
-// Placeholders restantes (IncidentsViewModel e RtrConsoleViewModel estão em arquivos próprios).
-public partial class ForensicsViewModel : ViewModelBase { }
-public partial class MemoryViewModel : ViewModelBase { }
+// Todos os ViewModels migrados para arquivos dedicados:
+//   RtrConsoleViewModel.cs, ForensicsViewModel.cs, MemoryViewModel.cs, IncidentsViewModel.cs
+// Este ficheiro mantém-se vazio por compatibilidade de build.

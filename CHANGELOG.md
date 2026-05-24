@@ -5,6 +5,33 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] — 2026-05-24
+
+### Added
+- **Filtros de investigação no Console RTR** — painel lateral com campos Hostname (com busca AID automática via 🔎), IP, Domínio, Hash (SHA256/MD5), Usuário e Processo. Os valores substituem os tokens `{HOST}/{IP}/{DOMAIN}/{HASH}/{USER}/{PROCESS}` nos scripts do catálogo.
+- **Catálogo de 20 scripts CrowdStrike** no Console RTR — derivados dos repositórios públicos `psfalcon`, `falcon-scripts` e `detection-strategy-scripts`. Organizados em 5 categorias:
+  - 🔍 Reconhecimento do Sistema (5 scripts Low): sys-info, process-tree, connections, autoruns, scheduled-tasks
+  - ⏰ Persistência e Autoinício (5 scripts Medium): services, startup-entries, registry-run, drivers, wmi-subscriptions
+  - 👤 Usuários e Credenciais (4 scripts Low): local-users, active-sessions, logon-history, powershell-history
+  - 🔬 Artefatos Forenses (6 scripts Low): prefetch-list, event-ids-security, event-ids-system, lnk-files, recycle-bin, mft-list
+  - 💾 Coleta de Evidências (4 scripts High): memdump-xrtr, disk-triage-kape, disk-triage-velo, disk-triage-uac
+- **Busca de host por hostname** — `SearchHostCommand` no RTR chama `IFalconClient.SearchHostsAsync`, preenche AID automaticamente e exibe resultado inline.
+- **Tela Memória RAM completa** — substitui o placeholder; suporta 3 ferramentas:
+  - **xmemdump** (nativo Falcon RTR Active Responder, sem upload de binário)
+  - **WinPmem** (Velocidex, open source, put-and-run)
+  - **DumpIt** (Comae, profissional, put-and-run)
+  - Seleção visual por card com indicador nativo/OSS/PRO.
+  - Banner e saída terminal em tempo real; caminho do dump exibido pós-captura com instrução `get` para recuperação.
+- **Tela Forense de Disco completa** — substitui o placeholder; suporta KAPE, Velociraptor e UAC com:
+  - Escopo granular: EventLogs, RegistryHives, Prefetch, WebBrowsers, Sistema/LNK, Rede, Triage Completo.
+  - Botões Selecionar Todos / Nenhum para seleção rápida de escopo.
+  - Ferramenta pré-selecionada quando navegado via botão "Velociraptor" em Detecções.
+- **Zero-Storage enforced** — dumps e artefatos forenses criados no endpoint remoto via RTR; nota informativa visível em ambas as telas.
+- `ForensicsViewModel` e `MemoryViewModel` promovidos a `AddSingleton` na DI — sessão RTR sobrevive à navegação entre telas.
+
+### Changed
+- `PlaceholderViewModels.cs` esvaziado: todos os ViewModels migrados para arquivos dedicados.
+
 ## [0.4.4] — 2026-05-24
 
 ### Added
