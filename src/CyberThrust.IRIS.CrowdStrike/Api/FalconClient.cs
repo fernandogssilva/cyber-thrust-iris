@@ -64,6 +64,72 @@ public sealed class FalconClient : IFalconClient
             return list.AsReadOnly();
         }, IrisErrorCode.CsApiServerError);
 
+    public Task<Result<IReadOnlyList<FalconAlert>>> ListAlertsAsync(FalconAlertsFilter filter, CancellationToken ct = default)
+        => Result.Try<IReadOnlyList<FalconAlert>>(async () =>
+        {
+            // Constrói FQL filter
+            var clauses = new List<string>();
+            if (filter.Products is { Length: > 0 })
+                clauses.Add("(" + string.Join(",", filter.Products.Select(p => $"product:'{p}'")) + ")");
+            if (filter.Statuses is { Length: > 0 })
+                clauses.Add("(" + string.Join(",", filter.Statuses.Select(s => $"status:'{s}'")) + ")");
+            if (filter.MinSeverities is { Length: > 0 })
+            {
+                var minScore = filter.MinSeverities.Min(s => s switch
+                {
+                    Severity.Critical => 90, Severity.High => 70, Severity.Medium => 40, Severity.Low => 20, _ => 0
+                });
+                clauses.Add($"severity:>={minScore}");
+            }
+            if (filter.LookBack is { } lb)
+            {
+                var since = DateTimeOffset.UtcNow.Subtract(lb).ToString("yyyy-MM-ddTHH:mm:ssZ");
+                clauses.Add($"created_timestamp:>='{since}'");
+            }
+            var fql = clauses.Count == 0 ? "" : "&filter=" + Uri.EscapeDataString(string.Join("+", clauses));
+
+            using var ids = await _http.GetAsync($"/alerts/queries/alerts/v2?limit={filter.Limit}&sort=created_timestamp.desc{fql}", ct).ConfigureAwait(false);
+            await EnsureSuccessAsync(ids, ct).ConfigureAwait(false);
+            using var idsDoc = JsonDocument.Parse(await ids.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+            var idArr = idsDoc.RootElement.GetProperty("resources").EnumerateArray().Select(e => e.GetString()!).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            if (idArr.Length == 0) return Array.Empty<FalconAlert>();
+
+            // Detalhes em batches de 100
+            var list = new List<FalconAlert>();
+            for (int i = 0; i < idArr.Length; i += 100)
+            {
+                var batch = idArr.Skip(i).Take(100).ToArray();
+                var payload = JsonSerializer.Serialize(new { ids = batch });
+                using var content = new StringContent(payload, Encoding.UTF8, "application/json");
+                using var resp = await _http.PostAsync("/alerts/entities/alerts/v2", content, ct).ConfigureAwait(false);
+                await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+                using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+                foreach (var d in doc.RootElement.GetProperty("resources").EnumerateArray())
+                {
+                    list.Add(new FalconAlert(
+                        CompositeId: d.GetPropertyOrEmpty("composite_id"),
+                        Product: d.GetPropertyOrEmpty("product"),
+                        Vendor: d.GetPropertyOrEmpty("vendor"),
+                        Name: d.GetPropertyOrEmpty("name"),
+                        Description: d.GetPropertyOrEmpty("description"),
+                        Severity: MapSeverity(d.TryGetProperty("severity", out var sv) && sv.ValueKind == JsonValueKind.Number ? sv.GetInt32() : 0),
+                        Status: d.GetPropertyOrEmpty("status"),
+                        Tactic: d.GetPropertyOrEmpty("tactic"),
+                        Technique: d.GetPropertyOrEmpty("technique"),
+                        TacticId: d.GetPropertyOrEmpty("tactic_id"),
+                        TechniqueId: d.GetPropertyOrEmpty("technique_id"),
+                        Aid: d.GetPropertyOrEmpty("agent_id"),
+                        Hostname: d.GetPropertyOrEmpty("device.hostname"),
+                        UserName: d.GetPropertyOrEmpty("user_name"),
+                        AssignedToName: d.GetPropertyOrEmpty("assigned_to_name"),
+                        CreatedUtc: d.TryGetProperty("created_timestamp", out var ct1) && DateTimeOffset.TryParse(ct1.GetString(), out var ctDt) ? ctDt : DateTimeOffset.UtcNow,
+                        UpdatedUtc: d.TryGetProperty("updated_timestamp", out var ut) && DateTimeOffset.TryParse(ut.GetString(), out var utDt) ? utDt : DateTimeOffset.UtcNow,
+                        Extra: new Dictionary<string, string>()));
+                }
+            }
+            return list.AsReadOnly();
+        }, IrisErrorCode.CsApiServerError);
+
     public Task<Result<IReadOnlyList<FalconHost>>> SearchHostsAsync(string filter, CancellationToken ct = default)
         => Result.Try<IReadOnlyList<FalconHost>>(async () =>
         {

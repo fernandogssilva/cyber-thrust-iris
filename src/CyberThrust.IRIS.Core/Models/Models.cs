@@ -15,6 +15,37 @@ public enum Severity { Informational, Low, Medium, High, Critical }
 
 public sealed record FalconDetection(string DetectionId, string Aid, string Hostname, Severity Severity, string Tactic, string Technique, string Description, DateTimeOffset TimestampUtc, IReadOnlyDictionary<string, string> Context);
 
+/// <summary>Alerta unificado do Falcon — vem da Alerts API v2 e cobre TODOS os produtos:
+/// EDR (epp), Identity Protection (idp), NG-SIEM (ngsiem), Mobile (mobile),
+/// Cloud Security (cloud), OverWatch (overwatch), XDR (xdr).</summary>
+public sealed record FalconAlert(
+    string CompositeId,
+    string Product,              // epp / idp / ngsiem / mobile / cloud / overwatch / xdr
+    string Vendor,               // crowdstrike
+    string Name,
+    string Description,
+    Severity Severity,
+    string Status,               // new / in_progress / true_positive / false_positive / ignored / closed
+    string Tactic,
+    string Technique,
+    string TacticId,
+    string TechniqueId,
+    string Aid,
+    string Hostname,
+    string UserName,             // populado em alertas IDP
+    string AssignedToName,
+    DateTimeOffset CreatedUtc,
+    DateTimeOffset UpdatedUtc,
+    IReadOnlyDictionary<string, string> Extra);
+
+/// <summary>Filtros para a query de alerts.</summary>
+public sealed record FalconAlertsFilter(
+    string[]? Products = null,           // epp, idp, ngsiem, mobile, cloud, overwatch, xdr
+    Severity[]? MinSeverities = null,    // só severidades >= a alguma da lista
+    string[]? Statuses = null,           // new, in_progress, true_positive, false_positive
+    TimeSpan? LookBack = null,           // ex: 24h, 7d
+    int Limit = 200);
+
 // ─── RTR ─────────────────────────────────────────────────────────────
 public sealed record RtrSessionInfo(string SessionId, string Aid, DateTimeOffset CreatedUtc, DateTimeOffset ExpiresUtc);
 public sealed record RtrCommandResult(string Aid, string SessionId, bool Complete, string? Stdout, string? Stderr, int? ExitCode, string? TaskId);
