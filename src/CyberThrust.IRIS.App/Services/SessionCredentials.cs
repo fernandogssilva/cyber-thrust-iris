@@ -8,16 +8,12 @@ namespace CyberThrust.IRIS.App.Services;
 ///
 /// O usuário insere credenciais na tela Settings → ficam aqui.
 /// Quando o app fecha → memória é limpa, credenciais somem.
-///
-/// Se o usuário marcar "Persistir entre sessões" na UI, então grava no
-/// appsettings.local.json (opt-in explícito, não default).
 /// </summary>
 public sealed class SessionCredentials
 {
     private EntraConfigSection _entra = new();
     private FalconConfigSection _falcon = new();
-    private string _virusTotalApiKey = string.Empty;
-    private string _malwareBazaarApiKey = string.Empty;
+    private ThreatIntelConfigSection _ti = new();
 
     public event Action? Changed;
 
@@ -33,43 +29,70 @@ public sealed class SessionCredentials
         set { _falcon = value ?? new(); Changed?.Invoke(); }
     }
 
-    public string VirusTotalApiKey
+    public ThreatIntelConfigSection ThreatIntel
     {
-        get => _virusTotalApiKey;
-        set { _virusTotalApiKey = value ?? string.Empty; Changed?.Invoke(); }
+        get => _ti;
+        set { _ti = value ?? new(); Changed?.Invoke(); }
     }
 
-    public string MalwareBazaarApiKey
+    public string VirusTotalApiKey
     {
-        get => _malwareBazaarApiKey;
-        set { _malwareBazaarApiKey = value ?? string.Empty; Changed?.Invoke(); }
+        get => _ti.VirusTotalApiKey;
+        set { _ti.VirusTotalApiKey = value ?? string.Empty; Changed?.Invoke(); }
     }
+
+    public string AbuseIpdbApiKey
+    {
+        get => _ti.AbuseIpdbApiKey;
+        set { _ti.AbuseIpdbApiKey = value ?? string.Empty; Changed?.Invoke(); }
+    }
+
+    public string ShodanApiKey
+    {
+        get => _ti.ShodanApiKey;
+        set { _ti.ShodanApiKey = value ?? string.Empty; Changed?.Invoke(); }
+    }
+
+    public string FofaEmail
+    {
+        get => _ti.FofaEmail;
+        set { _ti.FofaEmail = value ?? string.Empty; Changed?.Invoke(); }
+    }
+
+    public string FofaKey
+    {
+        get => _ti.FofaKey;
+        set { _ti.FofaKey = value ?? string.Empty; Changed?.Invoke(); }
+    }
+
+    public string MalwareBazaarApiKey { get; set; } = string.Empty;
 
     public bool HasFalconCredentials => !string.IsNullOrWhiteSpace(_falcon.ClientId) && !string.IsNullOrWhiteSpace(_falcon.ClientSecret);
     public bool HasEntraCredentials => !string.IsNullOrWhiteSpace(_entra.ClientId) && !_entra.ClientId.StartsWith("00000000", StringComparison.Ordinal);
+    public bool HasAnyCtiCredentials => !string.IsNullOrWhiteSpace(_ti.VirusTotalApiKey) || !string.IsNullOrWhiteSpace(_ti.AbuseIpdbApiKey) || !string.IsNullOrWhiteSpace(_ti.ShodanApiKey) || !string.IsNullOrWhiteSpace(_ti.FofaKey);
 
     /// <summary>Limpa toda a memória de credenciais. Chamado em logout ou shutdown.</summary>
     public void Clear()
     {
         _entra = new();
         _falcon = new();
-        _virusTotalApiKey = string.Empty;
-        _malwareBazaarApiKey = string.Empty;
+        _ti = new();
         Changed?.Invoke();
     }
 
-    /// <summary>Snapshot somente leitura — útil para passar a outros services sem expor o campo mutável.</summary>
     public AppConfigSnapshot ToSnapshot() => new()
     {
         EntraId = _entra,
         Falcon = _falcon,
-        Exfil = new ExfilConfigSection()
+        Exfil = new ExfilConfigSection(),
+        ThreatIntel = _ti
     };
 
     public void LoadFrom(AppConfigSnapshot snap)
     {
         _entra = snap.EntraId ?? new();
         _falcon = snap.Falcon ?? new();
+        _ti = snap.ThreatIntel ?? new();
         Changed?.Invoke();
     }
 }

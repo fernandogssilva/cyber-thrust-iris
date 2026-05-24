@@ -8,11 +8,12 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="20">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="Auto"/> <!-- Entra -->
+                <RowDefinition Height="Auto"/> <!-- Falcon -->
+                <RowDefinition Height="Auto"/> <!-- Threat Intel APIs -->
+                <RowDefinition Height="Auto"/> <!-- Exfil -->
+                <RowDefinition Height="Auto"/> <!-- Salvar -->
             </Grid.RowDefinitions>
 
             <!-- Cabeçalho -->
@@ -96,8 +97,42 @@
                 </StackPanel>
             </Border>
 
-            <!-- Exfil -->
+            <!-- Threat Intelligence APIs (CTI) -->
             <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Threat Intelligence — APIs" Style="{StaticResource H2}"/>
+                    <TextBlock Text="Chaves usadas em Reputação (Ctrl+9) e CTI (Ctrl+T). Tudo consultado direto via API — zero persistência além deste arquivo local." Style="{StaticResource Dim}" Margin="0,2,0,12" TextWrapping="Wrap"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="VirusTotal API key" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Column="1" Margin="0,6" Text="{Binding VirusTotalApiKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"/>
+
+                        <TextBlock Grid.Row="1" Text="AbuseIPDB API key" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,6" Text="{Binding AbuseIpdbApiKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"/>
+
+                        <TextBlock Grid.Row="2" Text="Shodan API key" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,6" Text="{Binding ShodanApiKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"/>
+
+                        <TextBlock Grid.Row="3" Text="FOFA email (opcional)" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,6" Text="{Binding FofaEmail, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"/>
+
+                        <TextBlock Grid.Row="4" Text="FOFA API key" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Margin="0,6" Text="{Binding FofaKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"/>
+                    </Grid>
+
+                    <TextBlock Text="Links: virustotal.com/gui/join-us · abuseipdb.com/register · account.shodan.io/register · en.fofa.info/userInfo" Style="{StaticResource Dim}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Exfil -->
+            <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,0,0,16">
                 <StackPanel>
                     <TextBlock Text="Exfiltração de evidência" Style="{StaticResource H2}"/>
                     <TextBlock Text="Presigned URL (S3/Azure Blob) usada por KAPE/UAC/Velociraptor para enviar artefatos do host sem o limite de 4GB do RTR get." Style="{StaticResource Dim}" Margin="0,2,0,12" TextWrapping="Wrap"/>
@@ -106,7 +141,7 @@
             </Border>
 
             <!-- Salvar -->
-            <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,0,0,16">
+            <Border Grid.Row="5" Style="{StaticResource Card}" Margin="0,0,0,16">
                 <StackPanel>
                     <DockPanel>
                         <Button Content="Salvar configuração" Style="{StaticResource BtnPrimary}" Command="{Binding SaveCommand}" HorizontalAlignment="Left"/>

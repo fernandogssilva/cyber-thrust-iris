@@ -28,6 +28,13 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private string _falconClientSecret = string.Empty;
     [ObservableProperty] private int _falconHttpTimeoutSeconds = 30;
 
+    // ─── Threat Intelligence APIs ───────────────────────────────
+    [ObservableProperty] private string _virusTotalApiKey = string.Empty;
+    [ObservableProperty] private string _abuseIpdbApiKey = string.Empty;
+    [ObservableProperty] private string _shodanApiKey = string.Empty;
+    [ObservableProperty] private string _fofaEmail = string.Empty;
+    [ObservableProperty] private string _fofaKey = string.Empty;
+
     // ─── Exfil ──────────────────────────────────────────────────
     [ObservableProperty] private string _exfilPresignedUrlTemplate = string.Empty;
 
@@ -62,6 +69,12 @@ public partial class SettingsViewModel : ViewModelBase
         FalconClientSecret = s.Falcon.ClientSecret;
         FalconHttpTimeoutSeconds = s.Falcon.HttpTimeoutSeconds > 0 ? s.Falcon.HttpTimeoutSeconds : 30;
 
+        VirusTotalApiKey = s.ThreatIntel?.VirusTotalApiKey ?? string.Empty;
+        AbuseIpdbApiKey = s.ThreatIntel?.AbuseIpdbApiKey ?? string.Empty;
+        ShodanApiKey = s.ThreatIntel?.ShodanApiKey ?? string.Empty;
+        FofaEmail = s.ThreatIntel?.FofaEmail ?? string.Empty;
+        FofaKey = s.ThreatIntel?.FofaKey ?? string.Empty;
+
         ExfilPresignedUrlTemplate = s.Exfil.PresignedUrlTemplate;
     }
 
@@ -85,6 +98,14 @@ public partial class SettingsViewModel : ViewModelBase
         Exfil = new ExfilConfigSection
         {
             PresignedUrlTemplate = ExfilPresignedUrlTemplate.Trim()
+        },
+        ThreatIntel = new ThreatIntelConfigSection
+        {
+            VirusTotalApiKey = VirusTotalApiKey.Trim(),
+            AbuseIpdbApiKey = AbuseIpdbApiKey.Trim(),
+            ShodanApiKey = ShodanApiKey.Trim(),
+            FofaEmail = FofaEmail.Trim(),
+            FofaKey = FofaKey.Trim()
         }
     };
 

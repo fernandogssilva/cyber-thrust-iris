@@ -6,6 +6,16 @@ public sealed class AppConfigSnapshot
     public EntraConfigSection EntraId { get; set; } = new();
     public FalconConfigSection Falcon { get; set; } = new();
     public ExfilConfigSection Exfil { get; set; } = new();
+    public ThreatIntelConfigSection ThreatIntel { get; set; } = new();
+}
+
+public sealed class ThreatIntelConfigSection
+{
+    public string VirusTotalApiKey { get; set; } = string.Empty;
+    public string AbuseIpdbApiKey { get; set; } = string.Empty;
+    public string ShodanApiKey { get; set; } = string.Empty;
+    public string FofaEmail { get; set; } = string.Empty;
+    public string FofaKey { get; set; } = string.Empty;
 }
 
 public sealed class EntraConfigSection
