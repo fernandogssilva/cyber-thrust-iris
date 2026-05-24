@@ -41,7 +41,9 @@ public sealed class FalconClient : IFalconClient
             var idArr = idsDoc.RootElement.GetProperty("resources").EnumerateArray().Select(e => e.GetString()!).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
             if (idArr.Length == 0) return Array.Empty<FalconDetection>();
 
-            var payload = JsonSerializer.Serialize(new { ids = idArr });
+            // ⚠️ Alerts API v2 EXIGE "composite_ids" (não "ids") — confirmado em api.us-2.crowdstrike.com.
+            //    Caso contrário: HTTP 400 "at least one identifier should be present in the request".
+            var payload = JsonSerializer.Serialize(new { composite_ids = idArr });
             using var content = new StringContent(payload, Encoding.UTF8, "application/json");
             using var resp = await _http.PostAsync("/alerts/entities/alerts/v2", content, ct).ConfigureAwait(false);
             await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
@@ -53,10 +55,10 @@ public sealed class FalconClient : IFalconClient
                 list.Add(new FalconDetection(
                     DetectionId: d.GetPropertyOrEmpty("composite_id"),
                     Aid: d.GetPropertyOrEmpty("agent_id"),
-                    Hostname: d.GetPropertyOrEmpty("device.hostname"),
-                    Severity: MapSeverity(d.TryGetProperty("severity", out var sv) ? sv.GetInt32() : 0),
-                    Tactic: d.GetPropertyOrEmpty("tactic"),
-                    Technique: d.GetPropertyOrEmpty("technique"),
+                    Hostname: ExtractHostname(d),
+                    Severity: MapSeverity(d.TryGetProperty("severity", out var sv) && sv.ValueKind == JsonValueKind.Number ? sv.GetInt32() : 0),
+                    Tactic: ExtractMitre(d, "tactic"),
+                    Technique: ExtractMitre(d, "technique"),
                     Description: d.GetPropertyOrEmpty("description"),
                     TimestampUtc: d.TryGetProperty("created_timestamp", out var ts) && DateTimeOffset.TryParse(ts.GetString(), out var dto) ? dto : DateTimeOffset.UtcNow,
                     Context: new Dictionary<string, string>()));
@@ -94,36 +96,45 @@ public sealed class FalconClient : IFalconClient
             var idArr = idsDoc.RootElement.GetProperty("resources").EnumerateArray().Select(e => e.GetString()!).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
             if (idArr.Length == 0) return Array.Empty<FalconAlert>();
 
-            // Detalhes em batches de 100
+            // Detalhes em batches de 100. Alerts API v2 EXIGE "composite_ids" no body.
             var list = new List<FalconAlert>();
             for (int i = 0; i < idArr.Length; i += 100)
             {
                 var batch = idArr.Skip(i).Take(100).ToArray();
-                var payload = JsonSerializer.Serialize(new { ids = batch });
+                var payload = JsonSerializer.Serialize(new { composite_ids = batch });
                 using var content = new StringContent(payload, Encoding.UTF8, "application/json");
                 using var resp = await _http.PostAsync("/alerts/entities/alerts/v2", content, ct).ConfigureAwait(false);
                 await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
                 using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
                 foreach (var d in doc.RootElement.GetProperty("resources").EnumerateArray())
                 {
+                    // display_name é o nome amigável (NG-SIEM/IDP), name é o técnico (EDR pattern)
+                    var displayName = d.GetPropertyOrEmpty("display_name");
+                    var techName = d.GetPropertyOrEmpty("name");
+                    var finalName = !string.IsNullOrWhiteSpace(displayName) ? displayName : techName;
+
                     list.Add(new FalconAlert(
                         CompositeId: d.GetPropertyOrEmpty("composite_id"),
                         Product: d.GetPropertyOrEmpty("product"),
-                        Vendor: d.GetPropertyOrEmpty("vendor"),
-                        Name: d.GetPropertyOrEmpty("name"),
+                        Vendor: ExtractFirstFromStringArray(d, "source_vendors", fallback: "crowdstrike"),
+                        Name: finalName,
                         Description: d.GetPropertyOrEmpty("description"),
                         Severity: MapSeverity(d.TryGetProperty("severity", out var sv) && sv.ValueKind == JsonValueKind.Number ? sv.GetInt32() : 0),
                         Status: d.GetPropertyOrEmpty("status"),
-                        Tactic: d.GetPropertyOrEmpty("tactic"),
-                        Technique: d.GetPropertyOrEmpty("technique"),
-                        TacticId: d.GetPropertyOrEmpty("tactic_id"),
-                        TechniqueId: d.GetPropertyOrEmpty("technique_id"),
+                        Tactic: ExtractMitre(d, "tactic"),
+                        Technique: ExtractMitre(d, "technique"),
+                        TacticId: ExtractMitre(d, "tactic_id"),
+                        TechniqueId: ExtractMitre(d, "technique_id"),
                         Aid: d.GetPropertyOrEmpty("agent_id"),
-                        Hostname: d.GetPropertyOrEmpty("device.hostname"),
-                        UserName: d.GetPropertyOrEmpty("user_name"),
+                        Hostname: ExtractHostname(d),
+                        UserName: ExtractUserName(d),
                         AssignedToName: d.GetPropertyOrEmpty("assigned_to_name"),
                         CreatedUtc: d.TryGetProperty("created_timestamp", out var ct1) && DateTimeOffset.TryParse(ct1.GetString(), out var ctDt) ? ctDt : DateTimeOffset.UtcNow,
-                        UpdatedUtc: d.TryGetProperty("updated_timestamp", out var ut) && DateTimeOffset.TryParse(ut.GetString(), out var utDt) ? utDt : DateTimeOffset.UtcNow,
+                        UpdatedUtc: d.TryGetProperty("updated_timestamp", out var ut) && DateTimeOffset.TryParse(ut.GetString(), out var utDt)
+                            ? utDt
+                            : d.TryGetProperty("crawled_timestamp", out var crt) && DateTimeOffset.TryParse(crt.GetString(), out var crDt)
+                                ? crDt
+                                : DateTimeOffset.UtcNow,
                         Extra: new Dictionary<string, string>()));
                 }
             }
@@ -355,6 +366,67 @@ public sealed class FalconClient : IFalconClient
         "esxi" => HostPlatform.Esxi,
         _ => HostPlatform.Other
     };
+
+    // ─── Alerts v2 schema helpers ───────────────────────────────────────────
+    // O JSON real de /alerts/entities/alerts/v2 (verificado em us-2) NÃO usa
+    // device.hostname / tactic / technique no topo. Os campos vivem em:
+    //   • host_names:[ "DESKTOP-X" ]          (preferido)
+    //   • source_endpoint_host_name:"…"       (fallback EPP)
+    //   • mitre_attack:[ {tactic, technique, tactic_id, technique_id, …} ]
+    //   • source_account_name:"…"             (IDP) / user_name não existe
+
+    private static string ExtractHostname(JsonElement d)
+    {
+        if (d.TryGetProperty("host_names", out var hn) && hn.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var h in hn.EnumerateArray())
+            {
+                var s = h.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) return s;
+            }
+        }
+        var src = d.GetPropertyOrEmpty("source_endpoint_host_name");
+        if (!string.IsNullOrWhiteSpace(src)) return src;
+        // último fallback legado
+        return d.GetPropertyOrEmpty("device.hostname");
+    }
+
+    private static string ExtractMitre(JsonElement d, string field)
+    {
+        if (d.TryGetProperty("mitre_attack", out var ma) && ma.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var m in ma.EnumerateArray())
+            {
+                if (m.TryGetProperty(field, out var v) && v.ValueKind == JsonValueKind.String)
+                {
+                    var s = v.GetString();
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                }
+            }
+        }
+        // fallback top-level (alguns produtos antigos)
+        return d.GetPropertyOrEmpty(field);
+    }
+
+    private static string ExtractUserName(JsonElement d)
+    {
+        var idp = d.GetPropertyOrEmpty("source_account_name");
+        if (!string.IsNullOrWhiteSpace(idp)) return idp;
+        return d.GetPropertyOrEmpty("user_name");
+    }
+
+    private static string ExtractFirstFromStringArray(JsonElement d, string field, string fallback = "")
+    {
+        if (d.TryGetProperty(field, out var arr) && arr.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var e in arr.EnumerateArray())
+            {
+                var s = e.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) return s;
+            }
+        }
+        return fallback;
+    }
 }
 
 file static class JsonElementExtensions

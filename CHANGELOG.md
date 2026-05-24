@@ -5,6 +5,22 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] — 2026-05-24
+
+### Fixed
+- **Detecções aparecendo em branco** — `POST /alerts/entities/alerts/v2` retornava `HTTP 400 "at least one identifier should be present in the request"` (`IRIS-CS-2013`). A Alerts API v2 do Falcon **exige o campo `composite_ids`** no body, e o cliente estava enviando `ids` (contrato antigo da `/detects` deprecada). Corrigido em `FalconClient.ListAlertsAsync` e `FalconClient.ListRecentDetectionsAsync`.
+- **Mapeamento do schema v2 do Alerts API** — os detalhes vinham como `null` mesmo após o fix do `composite_ids` porque o cliente tentava ler `device.hostname` / `tactic` / `technique` / `user_name` no topo, mas a API moderna retorna esses dados em:
+  - `host_names[0]` (preferido) ou `source_endpoint_host_name` (fallback EPP).
+  - `mitre_attack[0].{tactic, technique, tactic_id, technique_id}` em vez do topo.
+  - `display_name` (NG-SIEM/IDP) em vez de só `name` (técnico EDR).
+  - `source_account_name` (IDP) em vez de `user_name`.
+  - `source_vendors[0]` em vez de `vendor` string.
+  - Fallback de `updated_timestamp` → `crawled_timestamp` quando ausente.
+- Helpers privados `ExtractHostname`, `ExtractMitre`, `ExtractUserName`, `ExtractFirstFromStringArray` em `FalconClient` para isolar a complexidade do schema.
+
+### Validated
+- Endpoint real `api.us-2.crowdstrike.com` com credenciais Falcon do tenant: `GET /alerts/queries/alerts/v2` → `meta.pagination.total: 8141`; `POST /alerts/entities/alerts/v2` com `{"composite_ids":[...]}` → 200 OK com detalhes completos; com `{"ids":[...]}` → 400 (reproduz o bug do v0.4.2).
+
 ## [0.2.0] — 2026-05-23
 
 ### Changed
