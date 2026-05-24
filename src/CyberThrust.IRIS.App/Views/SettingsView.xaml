@@ -2,13 +2,119 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{DynamicResource Brush.Bg0}">
-    <Grid Margin="20">
-        <Border Style="{StaticResource Card}">
-            <StackPanel>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Cabeçalho -->
+            <DockPanel Margin="0,0,0,16">
                 <TextBlock Text="Configurações" Style="{StaticResource H1}"/>
-                <TextBlock Text="Edite appsettings.local.json para preencher tenant Entra e credenciais Falcon — pasta:" Style="{StaticResource Dim}" Margin="0,12,0,4"/>
-                <TextBlock x:Name="ConfigPath" Style="{StaticResource Body}" Foreground="{DynamicResource Brush.Accent}"/>
-            </StackPanel>
-        </Border>
-    </Grid>
+                <Button DockPanel.Dock="Right" Content="Abrir pasta" Style="{StaticResource BtnGhost}" Command="{Binding OpenConfigFolderCommand}"/>
+            </DockPanel>
+
+            <!-- Microsoft Entra ID -->
+            <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <DockPanel>
+                        <StackPanel>
+                            <TextBlock Text="Microsoft Entra ID" Style="{StaticResource H2}"/>
+                            <TextBlock Text="Autenticação do operador. Cliente registrado em Entra App Registrations." Style="{StaticResource Dim}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Tenant ID" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Column="1" Margin="0,6" Text="{Binding EntraTenantId, UpdateSourceTrigger=PropertyChanged}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" CaretBrush="{DynamicResource Brush.Accent}"/>
+
+                        <TextBlock Grid.Row="1" Text="Client ID" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,6" Text="{Binding EntraClientId, UpdateSourceTrigger=PropertyChanged}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" CaretBrush="{DynamicResource Brush.Accent}"/>
+
+                        <TextBlock Grid.Row="2" Text="Redirect URI" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,6" Text="{Binding EntraRedirectUri, UpdateSourceTrigger=PropertyChanged}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" CaretBrush="{DynamicResource Brush.Accent}"/>
+
+                        <TextBlock Grid.Row="3" Text="Scopes (CSV)" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,6" Text="{Binding EntraScopesCsv, UpdateSourceTrigger=PropertyChanged}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" CaretBrush="{DynamicResource Brush.Accent}"/>
+
+                        <TextBlock Grid.Row="4" Text="Usar WAM broker" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <CheckBox Grid.Row="4" Grid.Column="1" Margin="0,6" IsChecked="{Binding EntraUseBroker}" Foreground="{DynamicResource Brush.Text}" Content="Habilitar (recomendado em máquinas Entra-joined)"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="Testar Entra" Style="{StaticResource BtnGhost}" Command="{Binding TestEntraCommand}"/>
+                        <TextBlock Text="{Binding EntraTestResult}" Style="{StaticResource Body}" VerticalAlignment="Center" Margin="12,0,0,0"
+                                   Foreground="{Binding EntraTestSuccess, Converter={StaticResource BoolVis}}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- CrowdStrike Falcon -->
+            <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="CrowdStrike Falcon" Style="{StaticResource H2}"/>
+                    <TextBlock Text="API key da plataforma Falcon. Gere em Support and resources → API clients and keys." Style="{StaticResource Dim}" Margin="0,2,0,0"/>
+
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Cloud" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <ComboBox Grid.Column="1" Margin="0,6" ItemsSource="{Binding FalconCloudOptions}" SelectedItem="{Binding FalconCloud}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="6" Width="240" HorizontalAlignment="Left"/>
+
+                        <TextBlock Grid.Row="1" Text="Client ID" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,6" Text="{Binding FalconClientId, UpdateSourceTrigger=PropertyChanged}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" CaretBrush="{DynamicResource Brush.Accent}"/>
+
+                        <TextBlock Grid.Row="2" Text="Client Secret" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="FalconSecretBox" Margin="0,6" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" PasswordChanged="FalconSecretBox_PasswordChanged"/>
+
+                        <TextBlock Grid.Row="3" Text="HTTP timeout (s)" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,6"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,6" Text="{Binding FalconHttpTimeoutSeconds}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" Width="120" HorizontalAlignment="Left" CaretBrush="{DynamicResource Brush.Accent}"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="Testar Falcon" Style="{StaticResource BtnPrimary}" Command="{Binding TestFalconCommand}"/>
+                        <TextBlock Text="{Binding FalconTestResult}" Style="{StaticResource Body}" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Exfil -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Exfiltração de evidência" Style="{StaticResource H2}"/>
+                    <TextBlock Text="Presigned URL (S3/Azure Blob) usada por KAPE/UAC/Velociraptor para enviar artefatos do host sem o limite de 4GB do RTR get." Style="{StaticResource Dim}" Margin="0,2,0,12" TextWrapping="Wrap"/>
+                    <TextBox Text="{Binding ExfilPresignedUrlTemplate, UpdateSourceTrigger=PropertyChanged}" Background="{DynamicResource Brush.Bg3}" Foreground="{DynamicResource Brush.Text}" BorderBrush="{DynamicResource Brush.Stroke}" Padding="8" CaretBrush="{DynamicResource Brush.Accent}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Salvar -->
+            <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <DockPanel>
+                        <Button Content="Salvar configuração" Style="{StaticResource BtnPrimary}" Command="{Binding SaveCommand}" HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding SaveResult}" VerticalAlignment="Center" Margin="16,0,0,0" Style="{StaticResource Body}" TextWrapping="Wrap"/>
+                    </DockPanel>
+                    <TextBlock Text="{Binding ConfigFilePath}" Style="{StaticResource Dim}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

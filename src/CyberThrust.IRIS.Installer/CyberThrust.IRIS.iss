@@ -4,7 +4,7 @@
 ; ===========================================================
 
 #define MyAppName      "CyberThrust.IRIS"
-#define MyAppVersion   "0.2.2"
+#define MyAppVersion   "0.3.0"
 #define MyAppPublisher "CYBER THRUST"
 #define MyAppURL       "https://github.com/fernandogssilva/cyber-thrust-iris"
 #define MyAppExeName   "CyberThrust.IRIS.exe"
