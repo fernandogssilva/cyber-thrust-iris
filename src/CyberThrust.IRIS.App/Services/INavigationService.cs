@@ -35,6 +35,7 @@ public sealed class NavigationService : INavigationService
             "graph" => Resolve<Views.AttackTreeView>(),
             "health" => Resolve<Views.HealthCheckView>(),
             "settings" => Resolve<Views.SettingsView>(),
+            "reputation" => Resolve<Views.ReputationView>(),
             "login" => Resolve<Views.LoginView>(),
             _ => CurrentView
         };

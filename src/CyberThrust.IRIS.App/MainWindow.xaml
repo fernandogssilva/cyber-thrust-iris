@@ -18,6 +18,7 @@
         <KeyBinding Modifiers="Ctrl" Key="D6" Command="{Binding NavCommand}" CommandParameter="graph"/>
         <KeyBinding Modifiers="Ctrl" Key="D7" Command="{Binding NavCommand}" CommandParameter="health"/>
         <KeyBinding Modifiers="Ctrl" Key="D8" Command="{Binding NavCommand}" CommandParameter="settings"/>
+        <KeyBinding Modifiers="Ctrl" Key="D9" Command="{Binding NavCommand}" CommandParameter="reputation"/>
         <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding SignOutCommand}"/>
         <KeyBinding Key="F1" Command="{Binding NavCommand}" CommandParameter="health"/>
         <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
@@ -91,6 +92,10 @@
                 <Button ToolTip="Ctrl+8" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="settings">
                     <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <TextBlock Text="Configurações"/><TextBlock Grid.Column="1" Text="Ctrl+8" Style="{StaticResource Dim}"/></Grid>
+                </Button>
+                <Button ToolTip="Ctrl+9 — Reputação de artefato (VirusTotal/MalwareBazaar/URLhaus)" Style="{StaticResource BtnGhost}" Margin="0,4" Command="{Binding NavCommand}" CommandParameter="reputation">
+                    <Grid HorizontalAlignment="Stretch"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="Reputação"/><TextBlock Grid.Column="1" Text="Ctrl+9" Style="{StaticResource Dim}"/></Grid>
                 </Button>
             </StackPanel>
         </Border>

@@ -168,6 +168,10 @@ public partial class App : Application
 
                     services.AddSingleton<INavigationService, NavigationService>();
                     services.AddSingleton<HealthCheckService>();
+                    services.AddSingleton<AppConfigStore>();
+                    services.AddSingleton<ConnectionTester>();
+                    services.AddSingleton<SessionCredentials>();      // credenciais em memória apenas
+                    services.AddSingleton<ArtifactReputationClient>(); // VirusTotal / MalwareBazaar via API
 
                     services.AddTransient<MainViewModel>();
                     services.AddTransient<LoginViewModel>();
@@ -179,6 +183,7 @@ public partial class App : Application
                     services.AddTransient<ForensicsViewModel>();
                     services.AddTransient<MemoryViewModel>();
                     services.AddTransient<SettingsViewModel>();
+                    services.AddTransient<ReputationViewModel>();
 
                     services.AddLogging(b => b.ClearProviders().AddProvider(new SerilogLoggerProvider(Log.Logger)));
                 })

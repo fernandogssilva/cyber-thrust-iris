@@ -10,7 +10,7 @@
     <Company>CYBER THRUST</Company>
     <Product>CyberThrust.IRIS</Product>
     <Copyright>Copyright © 2026 CYBER THRUST and contributors — Apache License 2.0</Copyright>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/fernandogssilva/cyber-thrust-iris</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fernandogssilva/cyber-thrust-iris</RepositoryUrl>
