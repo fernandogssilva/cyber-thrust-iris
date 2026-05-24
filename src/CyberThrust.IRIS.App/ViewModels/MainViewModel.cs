@@ -32,12 +32,12 @@ public partial class MainViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
-        // Apenas abre tela de login. O SignInSilent é disparado depois,
-        // protegido por try/catch no LoginViewModel — evita crashes nativos
-        // do MSAL durante o bootstrap.
-        Serilog.Log.Information("MainViewModel.InitializeAsync → navigateTo(login)");
-        _nav.NavigateTo("login");
-        StatusText = "Pronto. Faça login para começar.";
+        // v0.3.2+: tela inicial é a Welcome (SOC Operations Center) com cards de
+        // status, KPIs Falcon (se autenticado) e Live Threat Feed (abuse.ch).
+        // Login não é mais obrigatório no arranque — o usuário entra quando quiser.
+        Serilog.Log.Information("MainViewModel.InitializeAsync → navigateTo(home)");
+        _nav.NavigateTo("home");
+        StatusText = "Centro de operações pronto.";
         await Task.CompletedTask;
     }
 

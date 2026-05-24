@@ -27,6 +27,7 @@ public sealed class NavigationService : INavigationService
     {
         CurrentView = viewKey switch
         {
+            "home" or "welcome" => Resolve<Views.WelcomeView>(),
             "dashboard" => Resolve<Views.DashboardView>(),
             "incidents" => Resolve<Views.IncidentsView>(),
             "rtr" => Resolve<Views.RtrConsoleView>(),
