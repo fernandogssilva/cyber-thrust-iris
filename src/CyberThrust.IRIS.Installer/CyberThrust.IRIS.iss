@@ -4,7 +4,7 @@
 ; ===========================================================
 
 #define MyAppName      "CyberThrust.IRIS"
-#define MyAppVersion   "0.4.6"
+#define MyAppVersion   "0.4.7"
 #define MyAppPublisher "CYBER THRUST"
 #define MyAppURL       "https://github.com/fernandogssilva/cyber-thrust-iris"
 #define MyAppExeName   "CyberThrust.IRIS.exe"
@@ -55,10 +55,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "..\..\publish\win-x64\CyberThrust.IRIS.exe";   DestDir: "{app}"; Flags: ignoreversion
-Source: "..\..\publish\win-x64\appsettings.json";       DestDir: "{app}"; Flags: ignoreversion
-Source: "..\..\publish\win-x64\WebAssets\*";            DestDir: "{app}\WebAssets"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\CyberThrust.IRIS.App\appsettings.local.json.example"; DestDir: "{app}"; DestName: "appsettings.local.json.example"; Flags: ignoreversion
+; Empacota TODO o conteúdo do publish (EXE apphost + DLL gerenciada + ~80 DLLs do runtime + runtimeconfig.json + deps.json + WebAssets).
+; CRITICAL: o EXE é apenas o apphost — sem as DLLs (especialmente CyberThrust.IRIS.dll, .runtimeconfig.json e .deps.json), o app falha com
+; ".NET Runtime: The application to execute does not exist: CyberThrust.IRIS.dll" antes mesmo de inicializar o logger.
+Source: "..\..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\CyberThrust.IRIS.App\appsettings.local.json.example"; DestDir: "{app}"; DestName: "appsettings.local.json.example"; Flags: ignoreversion onlyifdoesntexist
 Source: "..\..\docs\INSTALL_PT.txt";                    DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\..\docs\ERROR_CODES.md";                    DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\..\docs\ENTRA_SETUP.md";                    DestDir: "{app}\docs"; Flags: ignoreversion

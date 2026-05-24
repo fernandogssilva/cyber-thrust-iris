@@ -5,6 +5,16 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] — 2026-05-24 — Hotfix do instalador
+
+### Fixed
+- **CRÍTICO: Instalador v0.4.4/v0.4.5/v0.4.6 não incluía DLLs nem `runtimeconfig.json`**. O script Inno Setup `.iss` só copiava o `CyberThrust.IRIS.exe` (que é apenas o apphost de 180 KB) e o `appsettings.json` — sem a DLL gerenciada (`CyberThrust.IRIS.dll`), sem `runtimeconfig.json`, sem `deps.json` e sem as ~70 DLLs de dependências (CommunityToolkit.Mvvm, Serilog.*, Microsoft.Identity.Client, etc.). Resultado: ao executar, o .NET host falhava com `IRIS-NET-1001 The application to execute does not exist: 'CyberThrust.IRIS.dll'` — antes de inicializar o Serilog, sem deixar rastro no log nem no `crash.log`.
+- A regressão foi introduzida quando `<PublishSingleFile>` foi mudado para `false` no `csproj` — o EXE deixou de ser auto-contido mas o instalador continuou só copiando ele. Corrigido para empacotar **todo o conteúdo de `publish\win-x64\*`** (96 arquivos · 68 DLLs · main DLL · runtimeconfig + deps + WebAssets).
+- Versões 0.4.4, 0.4.5 e 0.4.6 dos Setup.exe estão **inutilizáveis** — instalam mas não abrem. Use exclusivamente o `CyberThrust.IRIS-0.4.7-Setup.exe`.
+
+### Note
+Nenhuma mudança funcional no código da aplicação em relação à v0.4.6 — todas as features de v0.4.6 (right-click context menu, painel enriquecido com IOCs/Device Profile/Alertas Correlacionados, RTR Host Card, cross-module IOC context) estão presentes. Esta release entrega exatamente o que v0.4.6 deveria ter entregue, agora num instalador funcional.
+
 ## [0.4.6] — 2026-05-24
 
 ### Added
