@@ -23,6 +23,8 @@ public partial class AlertsViewModel : ViewModelBase
     private readonly INavigationService _nav;
     private readonly AppConfigStore _cfg;
     private readonly AlertInvestigationContext _context;
+    private readonly IpIntelService _ipIntel;
+    private readonly ArtifactReputationClient _rep;
 
     public ObservableCollection<AlertRowVm> Alerts { get; } = new();
     public ICollectionView AlertsView { get; }
@@ -60,16 +62,20 @@ public partial class AlertsViewModel : ViewModelBase
     [ObservableProperty] private string _enrichmentStatus = string.Empty;
     public ObservableCollection<RelatedAlert> RelatedAlerts { get; } = new();
     public ObservableCollection<IocChip>      Iocs          { get; } = new();
+    public ObservableCollection<IpIntelCard>  IpCards       { get; } = new();
     [ObservableProperty] private bool _hasDeviceProfile;
     [ObservableProperty] private bool _hasRelatedAlerts;
     [ObservableProperty] private bool _hasIocs;
+    [ObservableProperty] private bool _hasIpCards;
 
-    public AlertsViewModel(IFalconClient falcon, INavigationService nav, AppConfigStore cfg, AlertInvestigationContext context)
+    public AlertsViewModel(IFalconClient falcon, INavigationService nav, AppConfigStore cfg, AlertInvestigationContext context, IpIntelService ipIntel, ArtifactReputationClient rep)
     {
         _falcon  = falcon;
         _nav     = nav;
         _cfg     = cfg;
         _context = context;
+        _ipIntel = ipIntel;
+        _rep     = rep;
         AlertsView = CollectionViewSource.GetDefaultView(Alerts);
         AlertsView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AlertRowVm.DateGroup)));
         _ = LoadCommand.ExecuteAsync(null);
@@ -86,16 +92,20 @@ public partial class AlertsViewModel : ViewModelBase
         HasDeviceProfile   = false;
         RelatedAlerts.Clear(); HasRelatedAlerts = false;
         Iocs.Clear();          HasIocs          = false;
+        IpCards.Clear();       HasIpCards       = false;
 
         if (value is not null)
             _ = EnrichAsync(value);
     }
 
-    // ─── Enrichment automático — device + alertas relacionados + IOCs ────────
+    // ─── Enrichment automático — device + alertas relacionados + IOCs + IP intel ────────
     private async Task EnrichAsync(AlertRowVm row)
     {
         // 1. IOCs do dict Extra (extraídos pelo FalconClient.ListAlertsAsync)
         BuildIocChips(row.Alert);
+
+        // 2. IP intel + reputation (qualquer IP que apareça no Extra ou em DeviceProfile)
+        _ = EnrichIpsAsync(row.Alert);
 
         var aid = row.Alert.Aid;
         if (string.IsNullOrWhiteSpace(aid)) return; // IDP/NG-SIEM podem não ter AID
@@ -139,6 +149,84 @@ public partial class AlertsViewModel : ViewModelBase
         finally
         {
             IsEnriching = false;
+        }
+    }
+
+    // ─── Enriquece IPs com geo/ISP (ip-api.com) + reputação (VT/MalwareBazaar/ThreatFox) ─
+    private async Task EnrichIpsAsync(FalconAlert alert)
+    {
+        if (alert.Extra is null) return;
+        var ipKeys = new[] { "local_ip", "external_ip", "ip_address" };
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var ipsToLookup = new List<(string label, string ip)>();
+        foreach (var k in ipKeys)
+        {
+            if (alert.Extra.TryGetValue(k, out var ip) && !string.IsNullOrWhiteSpace(ip) && seen.Add(ip))
+            {
+                var label = k switch
+                {
+                    "local_ip"     => "IP local (origem)",
+                    "external_ip"  => "IP externo (origem)",
+                    "ip_address"   => "IP do evento",
+                    _              => k
+                };
+                ipsToLookup.Add((label, ip.Trim()));
+            }
+        }
+        if (ipsToLookup.Count == 0) return;
+
+        // Lookup geo+ISP em paralelo
+        var lookupTasks = ipsToLookup.Select(x => (x.label, x.ip, task: _ipIntel.LookupAsync(x.ip))).ToList();
+        await Task.WhenAll(lookupTasks.Select(t => t.task)).ConfigureAwait(true);
+
+        foreach (var (label, ip, task) in lookupTasks)
+        {
+            var intel = task.Result;
+            // Reputação em background (não bloqueia) — atualiza o card quando responder
+            var card = new IpIntelCard(
+                Label: label,
+                Ip: ip,
+                Country: intel.IsPrivate ? "RFC 1918" : intel.Country,
+                CountryCode: intel.CountryCode,
+                Region: intel.Region,
+                City: intel.City,
+                Isp: intel.Isp,
+                Org: intel.Org,
+                AsNumber: intel.AsNumber,
+                IsPrivate: intel.IsPrivate,
+                ReputationVerdict: intel.IsPrivate ? "—" : "consultando…",
+                ReputationDetail: intel.IsPrivate ? "Rede interna — sem consulta externa" : null,
+                MaliciousVotes: 0,
+                TotalEngines: 0);
+            IpCards.Add(card);
+        }
+        HasIpCards = IpCards.Count > 0;
+
+        // Reputação async (não bloqueia UI inicial — atualiza chips no lugar)
+        for (int i = 0; i < IpCards.Count; i++)
+        {
+            var idx = i;
+            var c = IpCards[idx];
+            if (c.IsPrivate) continue;
+            try
+            {
+                var rep = await _rep.QueryAsync(c.Ip, ArtifactKind.IpAddress).ConfigureAwait(true);
+                var firstSource = rep.Sources.FirstOrDefault();
+                var detail = string.Join(" · ", rep.ThreatLabels.Take(3));
+                if (string.IsNullOrWhiteSpace(detail) && firstSource is not null)
+                    detail = $"{firstSource.Provider}: {firstSource.Detail ?? firstSource.Verdict.ToString()}";
+                IpCards[idx] = c with
+                {
+                    ReputationVerdict = rep.Verdict.ToString(),
+                    ReputationDetail  = detail,
+                    MaliciousVotes    = rep.MaliciousCount ?? 0,
+                    TotalEngines      = rep.TotalEngines ?? 0
+                };
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Reputation IP lookup falhou: {Ip}", c.Ip);
+            }
         }
     }
 
@@ -292,6 +380,16 @@ public partial class AlertsViewModel : ViewModelBase
     {
         if (SelectedAlertRow is null) return;
         _context.SetFromAlert(SelectedAlertRow.Alert);
+        // Auto-pick script de investigação baseado nos IOCs disponíveis
+        var ext = SelectedAlertRow.Alert.Extra ?? new Dictionary<string, string>();
+        if (ext.ContainsKey("filename") || ext.ContainsKey("cmdline"))
+            _context.PreferredRtrScriptId = "process-tree";
+        else if (ext.ContainsKey("logon_domain") || !string.IsNullOrWhiteSpace(SelectedAlertRow.Alert.UserName))
+            _context.PreferredRtrScriptId = "logon-history";
+        else if (ext.ContainsKey("ip_address") || ext.ContainsKey("domain") || ext.ContainsKey("url"))
+            _context.PreferredRtrScriptId = "connections";
+        else
+            _context.PreferredRtrScriptId = "sys-info";
         _nav.NavigateTo("rtr");
     }
 
@@ -333,6 +431,15 @@ public partial class AlertsViewModel : ViewModelBase
         if (row is null) return;
         _context.SetFromAlert(row.Alert);
         _nav.NavigateTo("reputation");
+    }
+
+    [RelayCommand]
+    private void OpenAttackTree(AlertRowVm? row)
+    {
+        row ??= SelectedAlertRow;
+        if (row is null) return;
+        _context.SetFromAlert(row.Alert);
+        _nav.NavigateTo("attacktree");
     }
 
     [RelayCommand]
@@ -521,5 +628,33 @@ public sealed class AlertRowVm
 public sealed record IocChip(string Label, string Icon, string Value, string CopyValue)
 {
     public string Display => Value.Length > 38 ? Value[..38] + "…" : Value;
+}
+
+/// <summary>Card de IP enriquecido: geo + ISP + reputação. Exibido como bloco no painel.</summary>
+public sealed record IpIntelCard(
+    string  Label,
+    string  Ip,
+    string  Country,
+    string  CountryCode,
+    string  Region,
+    string  City,
+    string  Isp,
+    string  Org,
+    string  AsNumber,
+    bool    IsPrivate,
+    string  ReputationVerdict,
+    string? ReputationDetail,
+    int     MaliciousVotes,
+    int     TotalEngines)
+{
+    public string Geo        => IsPrivate ? "Rede interna (RFC 1918)" : $"{City}, {Region}, {Country} ({CountryCode})";
+    public string DetectionRatio => TotalEngines > 0 ? $"{MaliciousVotes}/{TotalEngines}" : "—";
+    public string VerdictIcon => ReputationVerdict switch
+    {
+        "Malicious"  => "🔴",
+        "Suspicious" => "🟡",
+        "Clean"      => "🟢",
+        _            => "⚪"
+    };
 }
 

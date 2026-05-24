@@ -5,6 +5,34 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.8] — 2026-05-24
+
+### Added
+- **Botão "Console RTR + Script"** no painel de Detecções — agora abre o RTR, conecta automaticamente e **executa o script de investigação mais apropriado** baseado nos IOCs do alerta:
+  - Tem `filename` ou `cmdline` → executa `process-tree` parametrizado com o processo
+  - Tem `logon_domain` ou `user_name` → executa `logon-history`
+  - Tem `ip_address`, `domain` ou `url` → executa `connections`
+  - Fallback → `sys-info`
+- **Cards de Inteligência de IPs** no painel de detalhes — cada IP de origem/destino enriquecido com:
+  - **Geolocalização** (país, região, cidade) via ip-api.com (free, sem chave, 45 req/min)
+  - **ISP / Organização / AS Number**
+  - **Reputação multi-fonte** (VirusTotal · MalwareBazaar · URLhaus · ThreatFox) com verdict colorido (🔴/🟡/🟢/⚪)
+  - **Detection ratio** N/M engines
+  - **Botão copiar** o IP
+  - Detecção de IP privado (RFC 1918) → pula chamada externa
+- **AID + Composite ID completos** no painel — caixas de texto monospace, somente leitura, **selecionáveis e com botão de copiar dedicado**. Antes só aparecia AID truncado (`abc123...`).
+- **Árvore de Ataque por alerta** — quando você seleciona um alerta e clica "🕸 Árvore de Ataque" (botão do painel ou menu de contexto), a tela Attack Tree agora constrói um **grafo Cytoscape específico do alerta** com até 10 nós em sequência:
+  - **(User)** → **(Host)** → **(Parent Process)** → **(Process)** → **(File Hash)** → **(IP)** / **(Domain)** / **(URL)** → **(Detection)**
+  - Cada nó com metadata tooltip (cmdline, hash, IP completo, PID, MITRE técnica)
+  - Edges rotuladas: `logged_on`, `executed`, `spawned`, `loaded`, `connected_to`, `resolved`, `accessed`, `triggered`
+- **`IpIntelService`** — novo serviço usando ip-api.com (zero-storage, em memória apenas) com detecção automática de IP privado.
+
+### Changed
+- Botão "Console RTR" no detail panel **deixou de ser passivo** — agora sempre auto-executa script de investigação ao chegar no Console RTR (antes só pré-preenchia AID).
+- `AttackTreeViewModel` reescrito do zero para consumir `AlertInvestigationContext`. O fallback para grafo "live" agregado continua disponível quando não há alerta selecionado.
+- Tela Attack Tree com novo header mostrando contexto do alerta (nome · host · MITRE · severidade · timestamp) + estado vazio amigável quando não há alerta selecionado.
+- Rota `attacktree` / `attack-tree` / `ataque` adicionada ao `NavigationService` (todas resolvem para `AttackTreeView`).
+
 ## [0.4.7] — 2026-05-24 — Hotfix do instalador
 
 ### Fixed

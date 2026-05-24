@@ -172,6 +172,7 @@ public partial class App : Application
                     services.AddSingleton<ConnectionTester>();
                     services.AddSingleton<SessionCredentials>();           // credenciais em memória apenas
                     services.AddSingleton<ArtifactReputationClient>();     // VirusTotal / MalwareBazaar via API
+                    services.AddSingleton<IpIntelService>();               // ip-api.com — geo + ISP + AS para enriquecimento de IPs
                     services.AddSingleton<ThreatIntelFeedService>();       // URLhaus / ThreatFox / Bazaar live feed
                     services.AddSingleton<AlertInvestigationContext>();    // ponte Detecções → RTR/Forense/Memória (Zero-Storage)
 

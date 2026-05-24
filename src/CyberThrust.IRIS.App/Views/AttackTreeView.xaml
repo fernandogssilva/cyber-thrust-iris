@@ -8,12 +8,58 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <DockPanel Margin="0,0,0,12">
-            <TextBlock Text="Árvore de Ataque" Style="{StaticResource H1}"/>
-            <Button DockPanel.Dock="Right" Content="Recarregar" Style="{StaticResource BtnGhost}" Command="{Binding ReloadCommand}"/>
-        </DockPanel>
-        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
-            <wv:WebView2 x:Name="Browser" />
+
+        <!-- Header com contexto do alerta -->
+        <Border Grid.Row="0" Style="{StaticResource Card}" Padding="14,12" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource H1}" FontSize="22"/>
+                    <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource Brush.Accent}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding AlertContext}" Style="{StaticResource Dim}" FontSize="11" Margin="0,3,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="🔄  Recarregar"     Style="{StaticResource BtnGhost}" Command="{Binding ReloadCommand}"       Margin="0,0,8,0" Padding="12,6"/>
+                    <Button Content="← Detecções"       Style="{StaticResource BtnGhost}" Command="{Binding BackToAlertsCommand}" Padding="12,6"/>
+                </StackPanel>
+            </Grid>
         </Border>
+
+        <Grid Grid.Row="1">
+            <Border Style="{StaticResource Card}" Padding="0">
+                <wv:WebView2 x:Name="Browser" />
+            </Border>
+
+            <!-- Estado vazio -->
+            <Border Background="#88000000" CornerRadius="10">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasGraph}" Value="False">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="540">
+                    <TextBlock Text="🕸" FontSize="48" HorizontalAlignment="Center" Foreground="{DynamicResource Brush.Accent}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Nenhum alerta selecionado" Style="{StaticResource H2}" HorizontalAlignment="Center"/>
+                    <TextBlock TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource Brush.TextDim}" FontSize="13" Margin="0,8,0,0">
+                        Para visualizar a cadeia de ataque passo-a-passo de uma detecção:
+                        <LineBreak/>
+                        1. Abra <Run Foreground="{DynamicResource Brush.Accent}">Detecções</Run> (Ctrl+A)
+                        <LineBreak/>
+                        2. Clique direito em um alerta
+                        <LineBreak/>
+                        3. Selecione <Run Foreground="{DynamicResource Brush.Accent}">🕸 Árvore de Ataque</Run>
+                    </TextBlock>
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource Brush.Danger}" TextWrapping="Wrap" FontSize="11" Margin="0,12,0,0" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

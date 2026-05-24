@@ -34,7 +34,7 @@ public sealed class NavigationService : INavigationService
             "rtr" => Resolve<Views.RtrConsoleView>(),
             "forensics" => Resolve<Views.ForensicsView>(),
             "memory" => Resolve<Views.MemoryView>(),
-            "graph" => Resolve<Views.AttackTreeView>(),
+            "graph" or "attacktree" or "attack-tree" or "ataque" => Resolve<Views.AttackTreeView>(),
             "health" => Resolve<Views.HealthCheckView>(),
             "settings" => Resolve<Views.SettingsView>(),
             "reputation" => Resolve<Views.ReputationView>(),
