@@ -43,7 +43,7 @@ public static class RtrScriptCatalog
             Icon:          "💻",
             Description:   "Hostname, SO, versão, hardware, uptime, domínio.\nSource: psfalcon/samples/rtr",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=systeminfo /fo csv 2>&1 | Select-Object -Skip 1 | ConvertFrom-Csv | Select-Object 'Host Name','OS Name','OS Version','System Manufacturer','System Model','Total Physical Memory','Domain'",
+            CommandString: @"runscript -Raw=```systeminfo /fo csv 2>&1 | Select-Object -Skip 1 | ConvertFrom-Csv | Select-Object 'Host Name','OS Name','OS Version','System Manufacturer','System Model','Total Physical Memory','Domain'```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon/tree/main/samples/real-time-response"
         ),
@@ -55,7 +55,7 @@ public static class RtrScriptCatalog
             Icon:          "⚙",
             Description:   "Top 35 processos por CPU, com PID, PPID, memória e caminho.\nDetecta processos sem caminho (hollowing) e mascarados.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-Process | Sort-Object CPU -Descending | Select-Object -First 35 Name,Id,@{N='PPID';E={(Get-WmiObject Win32_Process -Filter ""ProcessId=$($_.Id)"" -EA SilentlyContinue).ParentProcessId}},@{N='CPU(s)';E={[math]::Round($_.CPU,1)}},@{N='Mem(MB)';E={[math]::Round($_.WorkingSet64/1MB,1)}},Path | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-Process | Sort-Object CPU -Descending | Select-Object -First 35 Name,Id,@{N='PPID';E={(Get-WmiObject Win32_Process -Filter ```""ProcessId=$($_.Id)"" -EA SilentlyContinue).ParentProcessId}},@{N='CPU(s)';E={[math]::Round($_.CPU,1)}},@{N='Mem(MB)';E={[math]::Round($_.WorkingSet64/1MB,1)}},Path | Format-Table -AutoSize",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon"
         ),
@@ -67,7 +67,7 @@ public static class RtrScriptCatalog
             Icon:          "🌐",
             Description:   "Conexões TCP ativas (Established/SynSent) com IP:porta remoto e PID dono.\nFiltrar por IP: preencha o filtro IP.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-NetTCPConnection -State Established,SynSent -EA SilentlyContinue | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess,@{N='Process';E={(Get-Process -Id $_.OwningProcess -EA SilentlyContinue).Name}} | Sort-Object RemoteAddress | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-NetTCPConnection -State Established,SynSent -EA SilentlyContinue | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess,@{N='Process';E={(Get-Process -Id $_.OwningProcess -EA SilentlyContinue).Name}} | Sort-Object RemoteAddress | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/falcon-scripts"
         ),
@@ -79,7 +79,7 @@ public static class RtrScriptCatalog
             Icon:          "📡",
             Description:   "Entradas do cache DNS do resolvedor. Útil para detectar domínios C2 recentemente consultados.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-DnsClientCache | Select-Object Entry,RecordName,Type,TTL,DataLength | Sort-Object Entry | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-DnsClientCache | Select-Object Entry,RecordName,Type,TTL,DataLength | Sort-Object Entry | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon"
         ),
@@ -91,7 +91,7 @@ public static class RtrScriptCatalog
             Icon:          "📶",
             Description:   "Cache ARP com endereços MAC → IP mapeados. Detecta ARP spoofing.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-NetNeighbor -State Reachable,Stale,Delay,Probe -EA SilentlyContinue | Select-Object IPAddress,LinkLayerAddress,State,InterfaceAlias | Sort-Object InterfaceAlias | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-NetNeighbor -State Reachable,Stale,Delay,Probe -EA SilentlyContinue | Select-Object IPAddress,LinkLayerAddress,State,InterfaceAlias | Sort-Object InterfaceAlias | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/falcon-scripts"
         ),
@@ -108,7 +108,7 @@ public static class RtrScriptCatalog
             Icon:          "📋",
             Description:   "Todas as tarefas agendadas habilitadas com caminho, estado e próxima execução.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-ScheduledTask | Where-Object {$_.State -ne 'Disabled'} | Select-Object TaskPath,TaskName,State | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-ScheduledTask | Where-Object {$_.State -ne 'Disabled'} | Select-Object TaskPath,TaskName,State | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon/tree/main/samples/real-time-response"
         ),
@@ -120,7 +120,7 @@ public static class RtrScriptCatalog
             Icon:          "🔧",
             Description:   "Serviços Windows com status Running, tipo de inicialização e caminho do binário.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-WmiObject Win32_Service | Where-Object {$_.State -eq 'Running'} | Select-Object Name,DisplayName,StartMode,PathName | Sort-Object Name | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-WmiObject Win32_Service | Where-Object {$_.State -eq 'Running'} | Select-Object Name,DisplayName,StartMode,PathName | Sort-Object Name | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon"
         ),
@@ -132,7 +132,7 @@ public static class RtrScriptCatalog
             Icon:          "🚀",
             Description:   "Entradas de Run/RunOnce nos hives HKLM e HKCU + pasta Startup do usuário.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=$hives=@('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce','HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Run'); foreach($h in $hives){""=== $h ==="" ; Get-ItemProperty $h -EA SilentlyContinue | Select-Object * -ExcludeProperty PSPath,PSParentPath,PSChildName,PSDrive,PSProvider | Format-List}",
+            CommandString: @"runscript -Raw=```$hives=@('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce','HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Run'); foreach($h in $hives){```""=== $h ==="" ; Get-ItemProperty $h -EA SilentlyContinue | Select-Object * -ExcludeProperty PSPath,PSParentPath,PSChildName,PSDrive,PSProvider | Format-List}",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/detection-strategy-scripts"
         ),
@@ -144,7 +144,7 @@ public static class RtrScriptCatalog
             Icon:          "🕵",
             Description:   "Filtros e consumidores WMI — técnica de persistência APT (T1546.003).",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=@('__EventFilter','__EventConsumer','__FilterToConsumerBinding') | ForEach-Object {$cls=$_; ""=== $cls ===""; Get-WmiObject -Namespace root\subscription -Class $cls -EA SilentlyContinue | Select-Object Name,Query,CommandLineTemplate | Format-Table -AutoSize}",
+            CommandString: @"runscript -Raw=```@('__EventFilter','__EventConsumer','__FilterToConsumerBinding') | ForEach-Object {$cls=$_; ```""=== $cls ===""; Get-WmiObject -Namespace root\subscription -Class $cls -EA SilentlyContinue | Select-Object Name,Query,CommandLineTemplate | Format-Table -AutoSize}",
             Risk:          RtrScriptRisk.Medium,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon/tree/main/samples/real-time-response"
         ),
@@ -156,7 +156,7 @@ public static class RtrScriptCatalog
             Icon:          "🗝",
             Description:   "Consulta reg.exe nas chaves Run/RunOnce/RunServices de HKLM e HKCU.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=@('HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce','HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce') | ForEach-Object {""=== $_ ==="" ; reg query $_ 2>&1}",
+            CommandString: @"runscript -Raw=```@('HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce','HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run','HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce') | ForEach-Object {```""=== $_ ==="" ; reg query $_ 2>&1}",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/detection-strategy-scripts"
         ),
@@ -173,7 +173,7 @@ public static class RtrScriptCatalog
             Icon:          "🛡",
             Description:   "Membros do grupo Administradores local. Detecta contas backdoor.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=net localgroup administrators 2>&1",
+            CommandString: @"runscript -Raw=```net localgroup administrators 2>&1```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon"
         ),
@@ -185,7 +185,7 @@ public static class RtrScriptCatalog
             Icon:          "🔐",
             Description:   "Últimos 30 logons (Event ID 4624) com usuário, tipo de logon e IP de origem.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-WinEvent -LogName Security -FilterXPath ""*[System[EventID=4624]][System[TimeCreated[timediff(@SystemTime)<=86400000]]]"" -MaxEvents 30 -EA SilentlyContinue | ForEach-Object { $xml=[xml]$_.ToXml(); $d=$xml.Event.EventData.Data; [pscustomobject]@{Time=$_.TimeCreated; User=($d|Where-Object Name -eq 'TargetUserName').'#text'; Type=($d|Where-Object Name -eq 'LogonType').'#text'; IP=($d|Where-Object Name -eq 'IpAddress').'#text'; Process=($d|Where-Object Name -eq 'ProcessName').'#text'} } | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-WinEvent -LogName Security -FilterXPath ```""*[System[EventID=4624]][System[TimeCreated[timediff(@SystemTime)<=86400000]]]"" -MaxEvents 30 -EA SilentlyContinue | ForEach-Object { $xml=[xml]$_.ToXml(); $d=$xml.Event.EventData.Data; [pscustomobject]@{Time=$_.TimeCreated; User=($d|Where-Object Name -eq 'TargetUserName').'#text'; Type=($d|Where-Object Name -eq 'LogonType').'#text'; IP=($d|Where-Object Name -eq 'IpAddress').'#text'; Process=($d|Where-Object Name -eq 'ProcessName').'#text'} } | Format-Table -AutoSize",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/falcon-scripts"
         ),
@@ -197,7 +197,7 @@ public static class RtrScriptCatalog
             Icon:          "👥",
             Description:   "Sessões RDP e console ativas (query session + net session).",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=query session 2>&1 ; echo '---'; net session 2>&1",
+            CommandString: @"runscript -Raw=```query session 2>&1 ; echo '---'; net session 2>&1```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon"
         ),
@@ -209,7 +209,7 @@ public static class RtrScriptCatalog
             Icon:          "🏢",
             Description:   "Membros do grupo Domain Admins (requer acesso ao DC) e administradores locais.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=net group ""Domain Admins"" /domain 2>&1 ; echo '---' ; net localgroup administrators 2>&1",
+            CommandString: @"runscript -Raw=```net group ```""Domain Admins"" /domain 2>&1 ; echo '---' ; net localgroup administrators 2>&1",
             Risk:          RtrScriptRisk.Medium,
             SourceUrl:     "https://github.com/CrowdStrike/detection-strategy-scripts"
         ),
@@ -226,7 +226,7 @@ public static class RtrScriptCatalog
             Icon:          "📁",
             Description:   "30 arquivos Prefetch mais recentes — comprova execução de programas (T1218).",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-ChildItem C:\Windows\Prefetch\*.pf -EA SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 30 Name,LastWriteTime,@{N='Size(KB)';E={[math]::Round($_.Length/1KB,1)}} | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-ChildItem C:\Windows\Prefetch\*.pf -EA SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 30 Name,LastWriteTime,@{N='Size(KB)';E={[math]::Round($_.Length/1KB,1)}} | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon/tree/main/samples/real-time-response"
         ),
@@ -238,7 +238,7 @@ public static class RtrScriptCatalog
             Icon:          "🌍",
             Description:   "Localiza arquivos de histórico do Chrome, Edge e Firefox (não lê conteúdo).",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=$paths=@([Environment]::ExpandEnvironmentVariables('%LOCALAPPDATA%\Google\Chrome\User Data\Default\History'),[Environment]::ExpandEnvironmentVariables('%LOCALAPPDATA%\Microsoft\Edge\User Data\Default\History'),[Environment]::ExpandEnvironmentVariables('%APPDATA%\Mozilla\Firefox\Profiles')); $paths | ForEach-Object { [pscustomobject]@{ Browser=(Split-Path (Split-Path $_ -Parent) -Leaf); Path=$_; Exists=(Test-Path $_); LastModified=if(Test-Path $_){(Get-Item $_).LastWriteTime}else{'N/A'} } } | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```$paths=@([Environment]::ExpandEnvironmentVariables('%LOCALAPPDATA%\Google\Chrome\User Data\Default\History'),[Environment]::ExpandEnvironmentVariables('%LOCALAPPDATA%\Microsoft\Edge\User Data\Default\History'),[Environment]::ExpandEnvironmentVariables('%APPDATA%\Mozilla\Firefox\Profiles')); $paths | ForEach-Object { [pscustomobject]@{ Browser=(Split-Path (Split-Path $_ -Parent) -Leaf); Path=$_; Exists=(Test-Path $_); LastModified=if(Test-Path $_){(Get-Item $_).LastWriteTime}else{'N/A'} } } | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/falcon-scripts"
         ),
@@ -250,7 +250,7 @@ public static class RtrScriptCatalog
             Icon:          "🔌",
             Description:   "Dispositivos USB já conectados (USBSTOR no registro). Detecta exfiltração por USB.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Enum\USBSTOR\*\*' -EA SilentlyContinue | Select-Object FriendlyName,@{N='DeviceID';E={$_.PSChildName}},ContainerID | Sort-Object FriendlyName | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Enum\USBSTOR\*\*' -EA SilentlyContinue | Select-Object FriendlyName,@{N='DeviceID';E={$_.PSChildName}},ContainerID | Sort-Object FriendlyName | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/detection-strategy-scripts"
         ),
@@ -262,7 +262,7 @@ public static class RtrScriptCatalog
             Icon:          "📄",
             Description:   "Atalhos de arquivos recentemente acessados pelo usuário (pasta Recent).",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-ChildItem ""$env:APPDATA\Microsoft\Windows\Recent\*.lnk"" -EA SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 30 Name,LastWriteTime | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-ChildItem ```""$env:APPDATA\Microsoft\Windows\Recent\*.lnk"" -EA SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 30 Name,LastWriteTime | Format-Table -AutoSize",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon"
         ),
@@ -274,7 +274,7 @@ public static class RtrScriptCatalog
             Icon:          "🔥",
             Description:   "Regras de firewall habilitadas (entrada). Detecta portas abertas por malware.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-NetFirewallRule | Where-Object {$_.Enabled -eq $true -and $_.Direction -eq 'Inbound' -and $_.Action -eq 'Allow'} | Select-Object Name,DisplayName,Profile,Protocol,@{N='Port';E={(Get-NetFirewallPortFilter -AssociatedNetFirewallRule $_).LocalPort}} | Sort-Object Profile | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-NetFirewallRule | Where-Object {$_.Enabled -eq $true -and $_.Direction -eq 'Inbound' -and $_.Action -eq 'Allow'} | Select-Object Name,DisplayName,Profile,Protocol,@{N='Port';E={(Get-NetFirewallPortFilter -AssociatedNetFirewallRule $_).LocalPort}} | Sort-Object Profile | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Low,
             SourceUrl:     "https://github.com/CrowdStrike/detection-strategy-scripts"
         ),
@@ -286,7 +286,7 @@ public static class RtrScriptCatalog
             Icon:          "🗃",
             Description:   "50 arquivos modificados nas últimas 24h em C:\\. Detecta drops de malware.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=Get-ChildItem C:\ -Recurse -Force -EA SilentlyContinue | Where-Object {!$_.PSIsContainer -and $_.LastWriteTime -gt (Get-Date).AddHours(-24)} | Sort-Object LastWriteTime -Descending | Select-Object -First 50 FullName,LastWriteTime,@{N='Size(KB)';E={[math]::Round($_.Length/1KB,1)}} | Format-Table -AutoSize",
+            CommandString: @"runscript -Raw=```Get-ChildItem C:\ -Recurse -Force -EA SilentlyContinue | Where-Object {!$_.PSIsContainer -and $_.LastWriteTime -gt (Get-Date).AddHours(-24)} | Sort-Object LastWriteTime -Descending | Select-Object -First 50 FullName,LastWriteTime,@{N='Size(KB)';E={[math]::Round($_.Length/1KB,1)}} | Format-Table -AutoSize```",
             Risk:          RtrScriptRisk.Medium,
             SourceUrl:     "https://github.com/CrowdStrike/psfalcon/tree/main/samples/real-time-response"
         ),
@@ -315,7 +315,7 @@ public static class RtrScriptCatalog
             Icon:          "🧠",
             Description:   "Deploy do WinPmem via RTR put-and-run para captura de RAM.\nSource: github.com/Velocidex/WinPmem",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=$out='C:\Windows\Temp\memdump_'+$env:COMPUTERNAME+'_'+(Get-Date -Format 'yyyyMMdd_HHmmss')+'.raw'; if(Test-Path 'C:\Windows\Temp\winpmem.exe'){& 'C:\Windows\Temp\winpmem.exe' $out 2>&1}else{'WinPmem não encontrado. Use: put winpmem.exe + run winpmem.exe '+$out}",
+            CommandString: @"runscript -Raw=```$out='C:\Windows\Temp\memdump_'+$env:COMPUTERNAME+'_'+(Get-Date -Format 'yyyyMMdd_HHmmss')+'.raw'; if(Test-Path 'C:\Windows\Temp\winpmem.exe'){& 'C:\Windows\Temp\winpmem.exe' $out 2>&1}else{'WinPmem não encontrado. Use: put winpmem.exe + run winpmem.exe '+$out}```",
             Risk:          RtrScriptRisk.High,
             SourceUrl:     "https://github.com/Velocidex/WinPmem"
         ),
@@ -327,7 +327,7 @@ public static class RtrScriptCatalog
             Icon:          "💿",
             Description:   "Coleta de artefatos forenses com KAPE (Kroll Artifact Parser and Extractor) via RTR.\nAlvos: EventLogs, Registry, Prefetch, Browser, LNK, JumpLists.",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=$out='C:\Windows\Temp\kape_triage_'+$env:COMPUTERNAME; if(Test-Path 'C:\Windows\Temp\kape.exe'){& 'C:\Windows\Temp\kape.exe' --tsource C: --tdest $out --target !BasicCollection --zip $env:COMPUTERNAME 2>&1}else{'KAPE não encontrado. Use: put kape.exe + run kape.exe --tsource C: --tdest '+$out+' --target !BasicCollection'}",
+            CommandString: @"runscript -Raw=```$out='C:\Windows\Temp\kape_triage_'+$env:COMPUTERNAME; if(Test-Path 'C:\Windows\Temp\kape.exe'){& 'C:\Windows\Temp\kape.exe' --tsource C: --tdest $out --target !BasicCollection --zip $env:COMPUTERNAME 2>&1}else{'KAPE não encontrado. Use: put kape.exe + run kape.exe --tsource C: --tdest '+$out+' --target !BasicCollection'}```",
             Risk:          RtrScriptRisk.High,
             SourceUrl:     "https://www.kroll.com/en/services/cyber-risk/incident-response-litigation-support/kroll-artifact-parser-extractor-kape"
         ),
@@ -339,7 +339,7 @@ public static class RtrScriptCatalog
             Icon:          "🦅",
             Description:   "Executa coleta rápida de artefatos via Velociraptor inline no endpoint.\nSource: github.com/Velocidex/velociraptor",
             BaseCommand:   "runscript",
-            CommandString: @"runscript -Raw=if(Test-Path 'C:\Windows\Temp\velociraptor.exe'){& 'C:\Windows\Temp\velociraptor.exe' artifacts collect Windows.KapeFiles.Targets --args OperatingSystem=Windows BasicCollection=Y --output C:\Windows\Temp\velociraptor_triage.zip 2>&1}else{'Velociraptor não encontrado no endpoint. Faça o put do binário primeiro.'}",
+            CommandString: @"runscript -Raw=```if(Test-Path 'C:\Windows\Temp\velociraptor.exe'){& 'C:\Windows\Temp\velociraptor.exe' artifacts collect Windows.KapeFiles.Targets --args OperatingSystem=Windows BasicCollection=Y --output C:\Windows\Temp\velociraptor_triage.zip 2>&1}else{'Velociraptor não encontrado no endpoint. Faça o put do binário primeiro.'}```",
             Risk:          RtrScriptRisk.High,
             SourceUrl:     "https://github.com/Velocidex/velociraptor"
         ),

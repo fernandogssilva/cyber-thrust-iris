@@ -5,6 +5,21 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9] — 2026-05-24 — Hotfix sintaxe RTR `runscript -Raw`
+
+### Fixed
+- **CRÍTICO: todos os 29 comandos `runscript -Raw` falhavam com `Falcon API 400 — Command is not valid (code 40006)`**. A sintaxe correta da Falcon RTR para script inline exige **três crases (` ``` `) delimitando o código PowerShell**, mas eu havia escrito `runscript -Raw=<código>` sem as crases — o parser do Falcon não consegue determinar onde o argumento termina e devolve erro 40006.
+- Arquivos corrigidos (29 ocorrências):
+  - `Services/RtrScriptCatalog.cs` — 23 dos 20 scripts cross-categoria (recon · persistência · usuários · forense · coleta)
+  - `ViewModels/ForensicsViewModel.cs` — 4 ocorrências (KAPE · Velociraptor · UAC · default)
+  - `ViewModels/MemoryViewModel.cs` — 2 ocorrências (WinPmem · DumpIt)
+- Padrão antes (errado): `runscript -Raw=if(Test-Path 'C:\...'){ & ... }`
+- Padrão depois (correto): `` runscript -Raw=```if(Test-Path 'C:\...'){ & ... }``` ``
+- Referência: `VelociraptorOrchestrator.cs` no módulo Forensics já usava a sintaxe correta — só não foi propagada para os ViewModels e o catálogo de scripts.
+
+### Note
+Nenhuma mudança funcional além do fix. Todos os 4 itens da v0.4.8 (Console RTR + Script auto-executado, Cards de IP intel, AID completo + copy, Árvore de Ataque por alerta) agora **realmente funcionam** — antes terminavam com erro RTR 400.
+
 ## [0.4.8] — 2026-05-24
 
 ### Added

@@ -201,20 +201,20 @@ public partial class ForensicsViewModel : ViewModelBase
             {
                 var targets = BuildKapeTargets();
                 return ("runscript",
-                    @$"runscript -Raw=if(Test-Path 'C:\Windows\Temp\kape.exe'){{& 'C:\Windows\Temp\kape.exe' --tsource C: --tdest '{outPath}' --target {targets} --zip {DisplayHost} 2>&1}}else{{'KAPE não encontrado. Faça o put do kape.exe via Console RTR antes de iniciar a coleta.'}}");
+                    @$"runscript -Raw=```if(Test-Path 'C:\Windows\Temp\kape.exe'){{& 'C:\Windows\Temp\kape.exe' --tsource C: --tdest '{outPath}' --target {targets} --zip {DisplayHost} 2>&1}}else{{'KAPE não encontrado. Faça o put do kape.exe via Console RTR antes de iniciar a coleta.'}}```");
             }
             case ForensicsToolKind.Velociraptor:
             {
                 return ("runscript",
-                    @$"runscript -Raw=if(Test-Path 'C:\Windows\Temp\velociraptor.exe'){{& 'C:\Windows\Temp\velociraptor.exe' artifacts collect Windows.KapeFiles.Targets --args OperatingSystem=Windows BasicCollection=Y --output '{outPath}.zip' 2>&1}}else{{'Velociraptor não encontrado. Faça o put do binário via Console RTR.'}}");
+                    @$"runscript -Raw=```if(Test-Path 'C:\Windows\Temp\velociraptor.exe'){{& 'C:\Windows\Temp\velociraptor.exe' artifacts collect Windows.KapeFiles.Targets --args OperatingSystem=Windows BasicCollection=Y --output '{outPath}.zip' 2>&1}}else{{'Velociraptor não encontrado. Faça o put do binário via Console RTR.'}}```");
             }
             case ForensicsToolKind.Uac:
             {
                 return ("runscript",
-                    @$"runscript -Raw=if(Test-Path 'C:\Windows\Temp\uac.exe'){{& 'C:\Windows\Temp\uac.exe' -p windows -o '{outPath}' 2>&1}}else{{'UAC não encontrado. Faça o put do uac.exe via Console RTR.'}}");
+                    @$"runscript -Raw=```if(Test-Path 'C:\Windows\Temp\uac.exe'){{& 'C:\Windows\Temp\uac.exe' -p windows -o '{outPath}' 2>&1}}else{{'UAC não encontrado. Faça o put do uac.exe via Console RTR.'}}```");
             }
             default:
-                return ("runscript", @$"runscript -Raw=echo 'Ferramenta não configurada'");
+                return ("runscript", @$"runscript -Raw=```echo 'Ferramenta não configurada'```");
         }
     }
 

@@ -204,9 +204,9 @@ public partial class MemoryViewModel : ViewModelBase
         {
             MemoryTool.XMemdump => ("xmemdump", "xmemdump"),
             MemoryTool.WinPmem  => ("runscript",
-                @$"runscript -Raw=if(Test-Path 'C:\Windows\Temp\winpmem.exe'){{& 'C:\Windows\Temp\winpmem.exe' '{outPath}.raw' 2>&1}}else{{'WinPmem não encontrado. Coloque o binário em C:\Windows\Temp\winpmem.exe via put no Console RTR.'}}"),
+                @$"runscript -Raw=```if(Test-Path 'C:\Windows\Temp\winpmem.exe'){{& 'C:\Windows\Temp\winpmem.exe' '{outPath}.raw' 2>&1}}else{{'WinPmem não encontrado. Coloque o binário em C:\Windows\Temp\winpmem.exe via put no Console RTR.'}}```"),
             MemoryTool.DumpIt   => ("runscript",
-                @$"runscript -Raw=if(Test-Path 'C:\Windows\Temp\DumpIt.exe'){{& 'C:\Windows\Temp\DumpIt.exe' /OUTPUT '{outPath}.dmp' /Q 2>&1}}else{{'DumpIt não encontrado. Coloque o binário em C:\Windows\Temp\DumpIt.exe via put no Console RTR.'}}"),
+                @$"runscript -Raw=```if(Test-Path 'C:\Windows\Temp\DumpIt.exe'){{& 'C:\Windows\Temp\DumpIt.exe' /OUTPUT '{outPath}.dmp' /Q 2>&1}}else{{'DumpIt não encontrado. Coloque o binário em C:\Windows\Temp\DumpIt.exe via put no Console RTR.'}}```"),
             _ => ("xmemdump", "xmemdump")
         };
     }
