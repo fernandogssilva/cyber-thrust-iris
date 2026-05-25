@@ -226,6 +226,15 @@ public sealed class FalconClient : IFalconClient
                         20 => "new", 25 => "reopened", 30 => "in_progress", 40 => "closed", _ => "new"
                     };
 
+                    // Extrai host_ids (AIDs) para enriquecimento de online state
+                    var aids = new List<string>();
+                    if (d.TryGetProperty("host_ids", out var hids) && hids.ValueKind == JsonValueKind.Array)
+                        foreach (var x in hids.EnumerateArray())
+                        {
+                            var v = x.GetString();
+                            if (!string.IsNullOrWhiteSpace(v)) aids.Add(v);
+                        }
+
                     list.Add(new FalconIncident(
                         IncidentId: d.GetPropertyOrEmpty("incident_id"),
                         Name: d.GetPropertyOrEmpty("name"),
@@ -234,9 +243,10 @@ public sealed class FalconClient : IFalconClient
                         FineScore: fineScore,
                         Status: status,
                         AssignedToName: d.GetPropertyOrEmpty("assigned_to_name"),
-                        HostsCount: d.TryGetProperty("host_ids", out var hi) && hi.ValueKind == JsonValueKind.Array ? hi.GetArrayLength() : 0,
+                        HostsCount: aids.Count,
                         DetectionsCount: d.TryGetProperty("alert_ids", out var ai) && ai.ValueKind == JsonValueKind.Array ? ai.GetArrayLength() : 0,
                         Hostnames: hostnames,
+                        Aids: aids,
                         Tactics: tactics,
                         Techniques: techniques,
                         Objectives: objectives,
@@ -309,6 +319,50 @@ public sealed class FalconClient : IFalconClient
                 Tags:              h.TryGetProperty("tags", out var t) && t.ValueKind == JsonValueKind.Array
                                        ? t.EnumerateArray().Select(x => x.GetString() ?? "").Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
                                        : Array.Empty<string>());
+        }, IrisErrorCode.CsApiServerError);
+
+    /// <summary>
+    /// Estado online/offline de N agentes via /devices/entities/online-state/v1?ids=...
+    /// Documentação Falcon: state pode ser "online", "offline" ou "unknown".
+    /// API aceita até 100 IDs por chamada — quebramos em lotes.
+    /// </summary>
+    public Task<Result<IReadOnlyDictionary<string, HostOnlineState>>> GetHostsOnlineStateAsync(IEnumerable<string> aids, CancellationToken ct = default)
+        => Result.Try<IReadOnlyDictionary<string, HostOnlineState>>(async () =>
+        {
+            var unique = aids.Where(a => !string.IsNullOrWhiteSpace(a)).Distinct().ToArray();
+            var result = new Dictionary<string, HostOnlineState>();
+            if (unique.Length == 0) return result;
+
+            for (int i = 0; i < unique.Length; i += 100)
+            {
+                var batch = unique.Skip(i).Take(100).ToArray();
+                var query = string.Join("&", batch.Select(a => "ids=" + Uri.EscapeDataString(a)));
+                using var resp = await _http.GetAsync($"/devices/entities/online-state/v1?{query}", ct).ConfigureAwait(false);
+                if (!resp.IsSuccessStatusCode)
+                {
+                    // Marca todos como Unknown e segue — não vamos quebrar a tela inteira por isso
+                    foreach (var a in batch) result[a] = HostOnlineState.Unknown;
+                    continue;
+                }
+                using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+                if (!doc.RootElement.TryGetProperty("resources", out var resources)) continue;
+                foreach (var r in resources.EnumerateArray())
+                {
+                    var id    = r.GetPropertyOrEmpty("id");
+                    var state = r.GetPropertyOrEmpty("state").ToLowerInvariant();
+                    if (string.IsNullOrWhiteSpace(id)) continue;
+                    result[id] = state switch
+                    {
+                        "online"  => HostOnlineState.Online,
+                        "offline" => HostOnlineState.Offline,
+                        _         => HostOnlineState.Unknown
+                    };
+                }
+                // Garantir que AIDs ausentes na resposta venham como Unknown
+                foreach (var a in batch)
+                    if (!result.ContainsKey(a)) result[a] = HostOnlineState.Unknown;
+            }
+            return result;
         }, IrisErrorCode.CsApiServerError);
 
     public Task<Result<bool>> ContainHostAsync(string aid, CancellationToken ct = default)

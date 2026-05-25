@@ -5,6 +5,26 @@ All notable changes to CyberThrust.IRIS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.10] — 2026-05-24
+
+### Added
+- **Status online/offline do host em Detecções e Incidentes** via Falcon `/devices/entities/online-state/v1` (`online` / `offline` / `unknown`):
+  - **Coluna "Source endpoint" em Detecções** ganha um ícone 🟢/🔴/⚪ ao lado do hostname.
+  - **Tooltip** no ícone explica o estado.
+  - **Painel de detalhes** ao lado do hostname mostra pill com ícone + "Online/Offline/Desconhecido" colorido.
+  - **Cards de Incidentes** ganham um pill ao lado da lista de hosts:
+    - "🟢 N online" quando todos online
+    - "🔴 N offline" quando todos offline
+    - "🟢 N on · 🔴 M off" quando misto
+  - Lookup em **batch** (até 100 AIDs por chamada, em paralelo após o `Load`).
+  - **Não bloqueia** o load inicial — Detecções/Incidentes aparecem imediatamente, ícones populados em background.
+- **Novo método `IFalconClient.GetHostsOnlineStateAsync`** — recebe `IEnumerable<string>` AIDs, retorna `IReadOnlyDictionary<string, HostOnlineState>`. AIDs que falham vêm como `Unknown`.
+- **Novo enum `HostOnlineState`** (`Online` / `Offline` / `Unknown`) em `Core/Models`.
+
+### Changed
+- **`FalconIncident.Aids`** — novo campo populado de `host_ids` para permitir o lookup de online state. `HostsCount` agora vem da contagem real de AIDs (antes era do array `host_ids`).
+- **`AlertRowVm`** e **`IncidentCardVm`** agora implementam `INotifyPropertyChanged` para atualização reativa do badge online quando a chamada async termina.
+
 ## [0.4.9] — 2026-05-24 — Hotfix sintaxe RTR `runscript -Raw`
 
 ### Fixed

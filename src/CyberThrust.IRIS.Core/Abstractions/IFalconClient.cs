@@ -12,6 +12,9 @@ public interface IFalconClient
     Task<Result<IReadOnlyList<FalconHost>>> SearchHostsAsync(string filter, CancellationToken ct = default);
     /// <summary>Perfil completo do device via /devices/entities/devices/v2?ids={aid}. Retorna OS, IPs, agente, manufacturer, last_seen, containment status, OU, tags etc.</summary>
     Task<Result<DeviceProfile>> GetDeviceProfileAsync(string aid, CancellationToken ct = default);
+    /// <summary>Estado online/offline do agente Falcon em lote via /devices/entities/online-state/v1.
+    /// Retorna dict AID → HostOnlineState. AIDs que falham na consulta vêm como Unknown.</summary>
+    Task<Result<IReadOnlyDictionary<string, HostOnlineState>>> GetHostsOnlineStateAsync(IEnumerable<string> aids, CancellationToken ct = default);
     Task<Result<bool>> ContainHostAsync(string aid, CancellationToken ct = default);
     Task<Result<bool>> LiftContainmentAsync(string aid, CancellationToken ct = default);
     /// <summary>Atualiza o status de um alerta (new | in_progress | true_positive | false_positive | ignored | closed).</summary>

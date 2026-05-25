@@ -105,7 +105,15 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Margin="12,0">
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text}" FontSize="14"/>
-                                            <TextBlock Text="{Binding HostsCsv}" Foreground="{DynamicResource Brush.Accent2}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                <TextBlock Text="{Binding HostsCsv}" Foreground="{DynamicResource Brush.Accent2}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                <Border Background="#15FFFFFF" CornerRadius="3" Padding="5,1" Margin="8,0,0,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding OnlineIcon}" FontSize="10" Margin="0,0,3,0"/>
+                                                        <TextBlock Text="{Binding OnlineLabel}" Foreground="{Binding OnlineBrush}" FontSize="10" FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
                                             <TextBlock Text="{Binding HostsLabel}" Style="{StaticResource Dim}" FontSize="11" Margin="0,2,0,0"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                                 <TextBlock Text="{Binding TacticsCsv}" Foreground="{DynamicResource Brush.Accent}" FontSize="11"/>

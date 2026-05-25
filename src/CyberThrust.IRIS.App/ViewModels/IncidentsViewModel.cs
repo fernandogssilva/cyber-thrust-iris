@@ -78,6 +78,9 @@ public partial class IncidentsViewModel : ViewModelBase
             Incidents.Clear();
             foreach (var i in all) Incidents.Add(IncidentCardVm.From(i));
 
+            // Online state em batch (background)
+            _ = FetchOnlineStatesAsync();
+
             TotalCount = Incidents.Count;
             CriticalCount = Incidents.Count(x => x.Incident.Severity == Severity.Critical || x.Incident.Severity == Severity.High);
             NewCount = Incidents.Count(x => x.Incident.Status == "new" || x.Incident.Status == "reopened");
@@ -97,10 +100,66 @@ public partial class IncidentsViewModel : ViewModelBase
 
     [RelayCommand] private void GoToSettings() => _nav.NavigateTo("settings");
     [RelayCommand] private void GoToAlerts() => _nav.NavigateTo("alerts");
+
+    /// <summary>Para cada incidente, consulta o online state dos seus host_ids e agrega:
+    /// se ALGUM host estiver Online → o card aparece Online. Se TODOS Offline → Offline. Caso contrário Unknown.</summary>
+    private async Task FetchOnlineStatesAsync()
+    {
+        var allAids = Incidents.SelectMany(c => c.Incident.Aids).Where(a => !string.IsNullOrWhiteSpace(a)).Distinct().ToArray();
+        if (allAids.Length == 0) return;
+        var r = await _falcon.GetHostsOnlineStateAsync(allAids).ConfigureAwait(true);
+        if (r.IsFailure) { Log.Warning("Incidents OnlineState lookup falhou: {Err}", r.Error); return; }
+        var map = r.Value!;
+        foreach (var card in Incidents)
+        {
+            var states = card.Incident.Aids.Select(a => map.TryGetValue(a, out var st) ? st : HostOnlineState.Unknown).ToArray();
+            HostOnlineState agg;
+            if (states.Any(s => s == HostOnlineState.Online))       agg = HostOnlineState.Online;
+            else if (states.Length > 0 && states.All(s => s == HostOnlineState.Offline)) agg = HostOnlineState.Offline;
+            else                                                    agg = HostOnlineState.Unknown;
+            var online = states.Count(s => s == HostOnlineState.Online);
+            var offline = states.Count(s => s == HostOnlineState.Offline);
+            card.SetOnlineSummary(agg, online, offline, states.Length);
+        }
+    }
 }
 
-public sealed class IncidentCardVm
+public sealed class IncidentCardVm : System.ComponentModel.INotifyPropertyChanged
 {
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    private HostOnlineState _onlineState = HostOnlineState.Unknown;
+    private int _onlineCount, _offlineCount, _totalHosts;
+
+    public HostOnlineState OnlineState => _onlineState;
+    public string OnlineIcon  => _onlineState switch { HostOnlineState.Online => "🟢", HostOnlineState.Offline => "🔴", _ => "⚪" };
+    public string OnlineLabel
+    {
+        get
+        {
+            if (_totalHosts == 0) return "—";
+            if (_onlineCount > 0 && _offlineCount == 0) return $"{_onlineCount} online";
+            if (_offlineCount > 0 && _onlineCount == 0) return $"{_offlineCount} offline";
+            if (_onlineCount > 0 && _offlineCount > 0)  return $"{_onlineCount} on · {_offlineCount} off";
+            return "Desconhecido";
+        }
+    }
+    public Brush OnlineBrush => _onlineState switch
+    {
+        HostOnlineState.Online  => new SolidColorBrush(Color.FromRgb(0x00, 0xE6, 0x76)),
+        HostOnlineState.Offline => new SolidColorBrush(Color.FromRgb(0xFF, 0x52, 0x52)),
+        _                       => new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xC9))
+    };
+
+    public void SetOnlineSummary(HostOnlineState agg, int online, int offline, int total)
+    {
+        _onlineState  = agg;
+        _onlineCount  = online;
+        _offlineCount = offline;
+        _totalHosts   = total;
+        foreach (var p in new[] { nameof(OnlineState), nameof(OnlineIcon), nameof(OnlineLabel), nameof(OnlineBrush) })
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(p));
+    }
+
     public FalconIncident Incident { get; }
     public Brush SeverityBrush { get; }
     public string SeverityLabel => Incident.Severity.ToString();

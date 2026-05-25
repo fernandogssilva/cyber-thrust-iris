@@ -303,6 +303,9 @@ public partial class AlertsViewModel : ViewModelBase
             ResultsLabel  = $"{Alerts.Count} resultados ({Alerts.Count} total)";
             AlertsView.Filter = obj => obj is AlertRowVm row && row.MatchesSearch(SearchText);
 
+            // Fetch online state em batch (background — não bloqueia load)
+            _ = FetchOnlineStatesAsync();
+
             var byProduct = Alerts
                 .GroupBy(x => string.IsNullOrWhiteSpace(x.Alert.Product) ? "?" : x.Alert.Product)
                 .OrderByDescending(g => g.Count())
@@ -318,6 +321,17 @@ public partial class AlertsViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>Enriquece TODAS as linhas com status online/offline do host (Falcon /devices/entities/online-state/v1).</summary>
+    private async Task FetchOnlineStatesAsync()
+    {
+        var aids = Alerts.Select(a => a.Alert.Aid).Where(a => !string.IsNullOrWhiteSpace(a)).Distinct().ToArray();
+        if (aids.Length == 0) return;
+        var r = await _falcon.GetHostsOnlineStateAsync(aids).ConfigureAwait(true);
+        if (r.IsFailure) { Log.Warning("OnlineState lookup falhou: {Err}", r.Error); return; }
+        foreach (var row in Alerts)
+            row.SetOnlineState(r.Value!.TryGetValue(row.Alert.Aid, out var st) ? st : HostOnlineState.Unknown);
     }
 
     [RelayCommand]
@@ -538,8 +552,30 @@ public partial class AlertsViewModel : ViewModelBase
 
 // ─── Row VM ────────────────────────────────────────────────────────────────────
 /// <summary>Linha do DataGrid com formatação NG-SIEM-like.</summary>
-public sealed class AlertRowVm
+public sealed class AlertRowVm : System.ComponentModel.INotifyPropertyChanged
 {
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    private HostOnlineState _onlineState = HostOnlineState.Unknown;
+
+    public HostOnlineState OnlineState => _onlineState;
+    public string OnlineIcon  => _onlineState switch { HostOnlineState.Online => "🟢", HostOnlineState.Offline => "🔴", _ => "⚪" };
+    public string OnlineLabel => _onlineState switch { HostOnlineState.Online => "Online", HostOnlineState.Offline => "Offline", _ => "Desconhecido" };
+    public Brush  OnlineBrush => _onlineState switch
+    {
+        HostOnlineState.Online  => new SolidColorBrush(Color.FromRgb(0x00, 0xE6, 0x76)),
+        HostOnlineState.Offline => new SolidColorBrush(Color.FromRgb(0xFF, 0x52, 0x52)),
+        _                       => new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xC9))
+    };
+
+    public void SetOnlineState(HostOnlineState s)
+    {
+        _onlineState = s;
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(OnlineState)));
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(OnlineIcon)));
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(OnlineLabel)));
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(OnlineBrush)));
+    }
+
     public FalconAlert Alert { get; }
     public Brush SeverityBrush { get; }
     public string SeverityLabel { get; }

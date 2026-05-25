@@ -139,6 +139,7 @@ public sealed record FalconIncident(
     int HostsCount,
     int DetectionsCount,
     IReadOnlyList<string> Hostnames,
+    IReadOnlyList<string> Aids,           // host_ids do incident — necessário p/ consultar online state
     IReadOnlyList<string> Tactics,
     IReadOnlyList<string> Techniques,
     IReadOnlyList<string> Objectives,
@@ -146,6 +147,10 @@ public sealed record FalconIncident(
     DateTimeOffset EndUtc,
     DateTimeOffset CreatedUtc,
     DateTimeOffset ModifiedUtc);
+
+// ─── Host online state ────────────────────────────────────────────────────
+/// <summary>Status de conectividade do agente Falcon no endpoint.</summary>
+public enum HostOnlineState { Online, Offline, Unknown }
 
 // ─── Health Check ─────────────────────────────────────────────────────────
 public enum HealthStatus { Pass, Warn, Fail, Skipped }
